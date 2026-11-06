@@ -23,17 +23,14 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .avc,#editAv,.crow .ca,#wav{background-repeat:no-repeat;background-origin:border-box;background-clip:border-box}
 
 /* top bar */
-#topbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;height:64px;padding:0 22px}
+#topbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;height:calc(64px + env(safe-area-inset-top,0px));padding:env(safe-area-inset-top,0px) 22px 0}
 #topbar .spacer{flex:1}
 #manageBtn{color:#e8e8ea;font-size:17px;padding:8px 4px}
 #manageBtn:active{opacity:.6}
 
 /* picker */
 #scrPick h1{text-align:center;font-size:27px;font-weight:700;margin:8px 0 44px;letter-spacing:.2px}
-#pickTitle .brand{display:inline-flex;align-items:center;gap:11px}
-#pickTitle .brand svg{width:36px;height:36px;border-radius:9px;flex-shrink:0}
-#pickTitle .brand b{background:linear-gradient(135deg,#2ad4f5,#4a7dff 55%,#a55bff);-webkit-background-clip:text;background-clip:text;color:transparent}
-#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:38px 20px;max-width:720px;margin:0 auto;padding:0 28px 60px}
+#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:38px 20px;max-width:720px;margin:0 auto;padding:0 28px calc(60px + env(safe-area-inset-bottom,0px))}
 .p{display:flex;flex-direction:column;align-items:center;gap:14px;color:#fff;text-align:center}
 .p .av{width:100%;max-width:170px;aspect-ratio:1;position:relative;border-radius:50%;border:3px solid transparent;transition:transform .15s,border-color .15s}
 .avc{width:100%;height:100%;border-radius:50%;overflow:hidden;background-size:cover;background-position:center}
@@ -56,7 +53,7 @@ body.editmode .p .badge{position:absolute;bottom:-2%;inset-inline-end:-2%;width:
 .subhead .txtbtn{margin-inline-start:auto;color:#e8e8ea;font-size:16px;padding:8px 4px}
 
 /* edit profile */
-#editBody{max-width:460px;margin:0 auto;padding:18px 24px 60px;display:flex;flex-direction:column}
+#editBody{max-width:460px;margin:0 auto;padding:18px 24px calc(60px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column}
 #editAvWrap{align-self:center;position:relative;margin:6px 0 22px}
 #editAv{width:120px;height:120px;border-radius:50%;overflow:hidden;background-size:cover;background-position:center;position:relative}
 #editAvBtn{position:absolute;bottom:0;inset-inline-end:0;width:36px;height:36px;background:#f5f5f7;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px #0009}
@@ -75,7 +72,7 @@ body.editmode .p .badge{position:absolute;bottom:-2%;inset-inline-end:-2%;width:
 .switch.on::after{transform:translateX(-20px)}
 
 /* avatar picker */
-#avCats{padding:6px 0 60px}
+#avCats{padding:6px 0 calc(60px + env(safe-area-inset-bottom,0px))}
 .cat{margin-bottom:30px}
 .cat h3{font-size:20px;font-weight:600;margin:0 22px 16px;color:#f2f2f4}
 .crow{display:flex;gap:16px;overflow-x:auto;padding:4px 22px;scrollbar-width:none}
@@ -85,13 +82,13 @@ body.editmode .p .badge{position:absolute;bottom:-2%;inset-inline-end:-2%;width:
 @media(hover:hover){.crow .ca:hover{border-color:#fff;transform:scale(1.08)}}
 
 /* welcome */
-#scrWelcome{min-height:calc(100vh - 64px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;padding-bottom:80px}
+#scrWelcome{min-height:calc(100vh - 64px - env(safe-area-inset-top,0px));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;padding-bottom:calc(80px + env(safe-area-inset-bottom,0px))}
 #wav{width:170px;height:170px;border-radius:50%;overflow:hidden;background-size:cover;background-position:center}
 #wname{font-size:32px;margin:0}
 #backBtn{color:#9c9ca1;font-size:17px;padding:10px 22px;border:1px solid #4a4a4e;border-radius:6px}
 
 /* pin overlay */
-#pin{position:fixed;inset:0;z-index:50;background:#0b0b0df2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px}
+#pin{position:fixed;inset:0;z-index:50;background:#0b0b0df2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}
 #pinTitle{font-size:20px;font-weight:600;margin:0}
 #pinSub{color:#8e8e93;font-size:14px;margin-top:-16px;min-height:18px}
 #dots{display:flex;gap:16px}
@@ -111,7 +108,7 @@ body.editmode .p .badge{position:absolute;bottom:-2%;inset-inline-end:-2%;width:
 
 <main>
 <section id="scrPick">
-  <h1 id="pickTitle"><span class="brand" dir="ltr"><svg viewBox="0 0 64 64"><defs><linearGradient id="kg" x1="0" y1="0" x2="0.35" y2="1"><stop offset="0" stop-color="#2ad4f5"/><stop offset=".55" stop-color="#4a7dff"/><stop offset="1" stop-color="#a55bff"/></linearGradient></defs><rect width="64" height="64" rx="14.4" fill="url(#kg)"/><path d="M24 19.3 43.7 32 24 44.7Z" fill="#fff" stroke="#fff" stroke-width="4.5" stroke-linejoin="round"/><path d="M50.4 9.4l1.7 4.7 4.7 1.7-4.7 1.7-1.7 4.7-1.7-4.7-4.7-1.7 4.7-1.7z" fill="#fff"/></svg><span>Kids<b>+</b></span></span></h1>
+  <h1 id="pickTitle"></h1>
   <div id="grid"></div>
 </section>
 
@@ -191,9 +188,7 @@ function show(id){SCREENS.forEach(s=>$("#"+s).hidden=s!==id);$("#topbar").style.
 /* ---------- picker ---------- */
 function render(){
  document.body.classList.toggle("editmode",edit);
- const BRAND=document.querySelector("#pickTitle .brand");
  $("#pickTitle").textContent=edit?"עריכת פרופילים":"";
- if(!edit)$("#pickTitle").appendChild(BRAND);
  $("#manageBtn").textContent=edit?"סיום":"עריכת פרופילים";
  const g=$("#grid");g.innerHTML="";
  ps.forEach(p=>{
