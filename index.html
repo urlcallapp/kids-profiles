@@ -14,7 +14,8 @@ h1{font-size:clamp(28px,5vw,48px);font-weight:600;margin:0 0 30px}
 .p:hover .av{border-color:#fff;transform:scale(1.07)}
 .p:hover{color:#fff}
 .nm{margin-top:10px;font-size:20px}
-.add .av{background:#222a55;font-size:70px}
+.add .av{background:#222a55;font-size:70px;line-height:1}
+.av svg{display:block}
 #manage{margin-top:40px;padding:10px 28px;border:1px solid #aab;background:none;color:#aab;font-size:18px;letter-spacing:1px;cursor:pointer;border-radius:4px}
 #manage:hover{color:#fff;border-color:#fff}
 body.edit .av::after{content:"✏️";position:absolute;inset:0;width:150px;height:150px;background:#0008;display:flex;align-items:center;justify-content:center;font-size:48px;border-radius:14px}
@@ -23,7 +24,7 @@ dialog::backdrop{background:#000a}
 label{display:block;margin:14px 0 6px;color:#aab}
 input[type=text]{width:100%;padding:10px;font-size:18px;border-radius:8px;border:1px solid #556;background:#0b0f2a;color:#fff}
 #emojis,#colors{display:flex;flex-wrap:wrap;gap:8px}
-#emojis button{font-size:30px;background:#0b0f2a;border:2px solid transparent;border-radius:10px;cursor:pointer}
+#emojis button{width:54px;height:54px;padding:0;overflow:hidden;background:#0b0f2a;border:2px solid transparent;border-radius:10px;cursor:pointer}
 #colors button{width:34px;height:34px;border-radius:50%;border:3px solid transparent;cursor:pointer}
 .sel{border-color:#fff!important}
 .row{display:flex;gap:10px;margin-top:20px;justify-content:space-between}
@@ -51,13 +52,35 @@ input[type=text]{width:100%;padding:10px;font-size:18px;border-radius:8px;border
 </form>
 </dialog>
 <script>
-const EM=["🦁","🐼","🦄","🐯","🐸","🐵","🦊","🐙","🤖","🚀","🦖","👸","🦸","🧚","🐱","🐶"];
+
+const E='<circle cx="38" cy="50" r="5" fill="#222"/><circle cx="62" cy="50" r="5" fill="#222"/><circle cx="39.5" cy="48.5" r="1.8" fill="#fff"/><circle cx="63.5" cy="48.5" r="1.8" fill="#fff"/>';
+const SM='<path d="M40 64q10 10 20 0" stroke="#222" stroke-width="3.5" fill="none" stroke-linecap="round"/>';
+const F=(c)=>`<circle cx="50" cy="54" r="30" fill="${c}"/>`;
+const AV={
+lion:'<circle cx="50" cy="52" r="40" fill="#b9651b"/>'+F("#f6c453")+'<circle cx="32" cy="28" r="9" fill="#f6c453"/><circle cx="68" cy="28" r="9" fill="#f6c453"/>'+E+'<ellipse cx="50" cy="60" rx="6" ry="4.5" fill="#8a4a12"/>'+SM,
+panda:'<circle cx="26" cy="26" r="12" fill="#222"/><circle cx="74" cy="26" r="12" fill="#222"/>'+F("#fff")+'<ellipse cx="38" cy="50" rx="8" ry="10" fill="#222" transform="rotate(20 38 50)"/><ellipse cx="62" cy="50" rx="8" ry="10" fill="#222" transform="rotate(-20 62 50)"/><circle cx="38" cy="50" r="3.5" fill="#fff"/><circle cx="62" cy="50" r="3.5" fill="#fff"/><ellipse cx="50" cy="62" rx="5" ry="3.5" fill="#222"/>',
+unicorn:'<path d="M50 4l7 26H43z" fill="#ffd54a"/><circle cx="30" cy="30" r="8" fill="#fff"/><circle cx="70" cy="30" r="8" fill="#fff"/>'+F("#fff")+'<path d="M24 40q-10 14 0 30" stroke="#ec4899" stroke-width="8" fill="none" stroke-linecap="round"/>'+E+'<circle cx="32" cy="62" r="5" fill="#ffb3d1" opacity=".8"/><circle cx="68" cy="62" r="5" fill="#ffb3d1" opacity=".8"/>'+SM,
+tiger:'<circle cx="26" cy="28" r="10" fill="#ff9d2e"/><circle cx="74" cy="28" r="10" fill="#ff9d2e"/>'+F("#ff9d2e")+'<path d="M50 26v10M36 30l4 8M64 30l-4 8M22 52h9M78 52h-9" stroke="#222" stroke-width="4" stroke-linecap="round"/><ellipse cx="50" cy="64" rx="12" ry="9" fill="#fff"/>'+E+'<ellipse cx="50" cy="58" rx="4" ry="3" fill="#222"/>'+SM.replace('M40 64','M42 66').replace('20 0','16 0'),
+frog:'<circle cx="32" cy="30" r="12" fill="#6bd05a"/><circle cx="68" cy="30" r="12" fill="#6bd05a"/>'+F("#6bd05a")+'<circle cx="32" cy="30" r="7" fill="#fff"/><circle cx="68" cy="30" r="7" fill="#fff"/><circle cx="33" cy="31" r="3.5" fill="#222"/><circle cx="67" cy="31" r="3.5" fill="#222"/><path d="M32 64q18 16 36 0" stroke="#222" stroke-width="4" fill="none" stroke-linecap="round"/>',
+monkey:'<circle cx="18" cy="52" r="11" fill="#8a5a2b"/><circle cx="82" cy="52" r="11" fill="#8a5a2b"/>'+F("#8a5a2b")+'<ellipse cx="50" cy="60" rx="20" ry="16" fill="#f1cf9d"/>'+E+'<circle cx="45" cy="60" r="2" fill="#8a5a2b"/><circle cx="55" cy="60" r="2" fill="#8a5a2b"/><path d="M40 68q10 8 20 0" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/>',
+fox:'<path d="M20 14l22 20-18 18zM80 14L58 34l18 18z" fill="#f2711c"/>'+'<path d="M50 88L22 52q28 -16 56 0z" fill="#f2711c"/><path d="M50 88L30 62q20 6 40 0z" fill="#fff"/>'+'<circle cx="38" cy="50" r="5" fill="#222"/><circle cx="62" cy="50" r="5" fill="#222"/><circle cx="50" cy="74" r="4.5" fill="#222"/>',
+octopus:'<path d="M20 60q0-45 30-45t30 45q0 6-4 10l-4 14q-4 6-8 0l-2-8q-4 8-8 0l-2-6-2 6q-4 8-8 0l-2 8q-4 6-8 0l-4-14q-4-4-4-10z" fill="#a45cf0"/>'+E+'<circle cx="32" cy="60" r="5" fill="#ff9ad0" opacity=".8"/><circle cx="68" cy="60" r="5" fill="#ff9ad0" opacity=".8"/>'+SM,
+robot:'<path d="M50 6v14" stroke="#ddd" stroke-width="4"/><circle cx="50" cy="8" r="5" fill="#ff4d4d"/><rect x="18" y="20" width="64" height="58" rx="14" fill="#c9d3e0"/><rect x="26" y="34" width="48" height="26" rx="10" fill="#1d2a4a"/><circle cx="39" cy="47" r="6" fill="#4be1ff"/><circle cx="61" cy="47" r="6" fill="#4be1ff"/><rect x="36" y="66" width="28" height="6" rx="3" fill="#6d7a8f"/><rect x="10" y="40" width="8" height="18" rx="3" fill="#8f9bb0"/><rect x="82" y="40" width="8" height="18" rx="3" fill="#8f9bb0"/>',
+rocket:'<path d="M50 6q22 18 18 52H32Q28 24 50 6z" fill="#f4f6fb"/><circle cx="50" cy="36" r="8" fill="#4be1ff" stroke="#6d7a8f" stroke-width="3"/><path d="M32 46L18 66l16-4zM68 46l14 20-16-4z" fill="#ff4d6d"/><path d="M40 58h20l-10 28z" fill="#ffb300"/><path d="M45 58h10l-5 16z" fill="#ff6a00"/>',
+dino:'<path d="M14 62q0-40 38-42t34 34q0 24-22 28H34Q14 86 14 62z" fill="#58c26b"/><circle cx="56" cy="40" r="6" fill="#fff"/><circle cx="58" cy="41" r="3" fill="#222"/><path d="M22 36l8 8-2-14zM34 24l8 6-1-14zM48 20l6 6 2-12z" fill="#2f9c4a"/><path d="M52 62q14 10 28 0" stroke="#222" stroke-width="3.5" fill="none" stroke-linecap="round"/><circle cx="76" cy="48" r="2" fill="#2f9c4a"/>',
+princess:'<path d="M28 30l8 10 14-18 14 18 8-10-4 22H32z" fill="#ffd54a"/>'+'<circle cx="50" cy="62" r="26" fill="#ffd9b8"/><path d="M24 58q-4-24 26-26t26 26q-12-14-26-14T24 58z" fill="#7a4a21"/>'+E.replace(/cy="50"/g,'cy="64"').replace(/cy="48.5"/g,'cy="62.5"')+'<path d="M42 76q8 7 16 0" stroke="#d6336c" stroke-width="3.5" fill="none" stroke-linecap="round"/>',
+cat:'<path d="M20 12l20 18-18 14zM80 12L60 30l18 14z" fill="#9aa4b2"/>'+F("#9aa4b2")+E+'<path d="M50 58l-4-3h8z" fill="#ff7aa8"/><path d="M12 56h18M12 64h18M88 56H70M88 64H70" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>'+SM
+};
+const EM=Object.keys(AV);
+const NAMES_HE={};
+function svg(k,c){return `<svg viewBox="0 0 100 100" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="${c}"/>${AV[k]||AV.lion}</svg>`}
+
 const CO=["#e50914","#ff7a00","#f5c518","#2ecc71","#00bcd4","#3b82f6","#8b5cf6","#ec4899"];
-const KEY="kidsProfiles.v1";
+const KEY="kidsProfiles.v2";
 let ps=JSON.parse(localStorage.getItem(KEY)||"null")||[
- {id:1,name:"ילד 1",emoji:"🦁",color:CO[1]},
- {id:2,name:"ילדה 2",emoji:"🦄",color:CO[7]},
- {id:3,name:"ילד 3",emoji:"🤖",color:CO[5]}];
+ {id:1,name:"ילד 1",emoji:"lion",color:CO[1]},
+ {id:2,name:"ילדה 2",emoji:"unicorn",color:CO[7]},
+ {id:3,name:"ילד 3",emoji:"robot",color:CO[5]}];
 let edit=false,cur=null,tmp={};
 const $=s=>document.querySelector(s);
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(ps))}catch(e){alert("אין מקום לתמונה")}};
@@ -68,26 +91,26 @@ function render(){
  $("#manage").textContent=edit?"סיום":"ניהול פרופילים";
  const g=$("#grid");g.innerHTML="";
  ps.forEach(p=>{const b=document.createElement("button");b.className="p";
-  b.innerHTML=`<div class="av" style="${avStyle(p)}">${p.photo?"":p.emoji}</div><div class="nm"></div>`;
+  b.innerHTML=`<div class="av" style="${p.photo?avStyle(p):""}">${p.photo?"":svg(p.emoji,p.color)}</div><div class="nm"></div>`;
   b.querySelector(".nm").textContent=p.name;
   b.onclick=()=>edit?open(p):pick(p);g.appendChild(b)});
  if(ps.length<8){const a=document.createElement("button");a.className="p add";
-  a.innerHTML=`<div class="av">＋</div><div class="nm">הוספת פרופיל</div>`;
+  a.innerHTML=`<div class="av">+</div><div class="nm">הוספת פרופיל</div>`;
   a.onclick=()=>open(null);g.appendChild(a)}
 }
 function pick(p){$("#grid").style.display=$("#manage").style.display=$("#title").style.display="none";
- $("#welcome").style.display="block";const a=$("#wav");a.style.cssText=avStyle(p);a.textContent=p.photo?"":p.emoji;
+ $("#welcome").style.display="block";const a=$("#wav");a.style.cssText=p.photo?avStyle(p):"";a.innerHTML=p.photo?"":svg(p.emoji,p.color);
  $("#wname").textContent="שלום "+p.name+"!"}
 $("#back").onclick=()=>{$("#welcome").style.display="none";$("#grid").style.display="flex";$("#manage").style.display="";$("#title").style.display="";}
 $("#manage").onclick=()=>{edit=!edit;render()};
 function open(p){cur=p;tmp=p?{...p}:{name:"",emoji:EM[0],color:CO[5]};
  $("#name").value=tmp.name;$("#del").style.display=p?"":"none";
- $("#emojis").innerHTML="";EM.forEach(e=>{const b=document.createElement("button");b.type="button";b.textContent=e;
+ $("#emojis").innerHTML="";EM.forEach(e=>{const b=document.createElement("button");b.type="button";b.dataset.k=e;b.innerHTML=svg(e,"#334");
   b.className=e==tmp.emoji?"sel":"";b.onclick=()=>{tmp.emoji=e;tmp.photo=null;mark()};$("#emojis").appendChild(b)});
  $("#colors").innerHTML="";CO.forEach(c=>{const b=document.createElement("button");b.type="button";b.style.background=c;
   b.className=c==tmp.color?"sel":"";b.onclick=()=>{tmp.color=c;mark()};$("#colors").appendChild(b)});
  $("#dlg").showModal()}
-function mark(){[...$("#emojis").children].forEach(b=>b.classList.toggle("sel",b.textContent==tmp.emoji&&!tmp.photo));
+function mark(){[...$("#emojis").children].forEach(b=>b.classList.toggle("sel",b.dataset.k==tmp.emoji&&!tmp.photo));
  [...$("#colors").children].forEach(b=>b.classList.toggle("sel",b.style.background==hex(tmp.color)))}
 function hex(c){const d=document.createElement("i");d.style.background=c;return d.style.background}
 $("#photoBtn").onclick=()=>$("#file").click();
