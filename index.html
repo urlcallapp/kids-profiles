@@ -244,7 +244,7 @@ function doneEdit(){
  if(cur)Object.assign(cur,tmp);else{cur={...tmp,id:Date.now()};ps.push(cur)}
  save();render();show("scrPick")}
 $("#editDone").onclick=doneEdit;
-$("#editBack").onclick=doneEdit;
+$("#editBack").onclick=()=>{if($("#scrEdit").hidden)return;cur=null;tmp={};render();show("scrPick")};
 $("#editAvBtn").onclick=()=>show("scrAvatars");
 $("#chooseAv").onclick=()=>show("scrAvatars");
 $("#avBack").onclick=()=>show("scrEdit");
