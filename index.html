@@ -148,38 +148,18 @@ body.editmode .p .badge{position:absolute;bottom:-2%;inset-inline-end:-2%;width:
 
 <script>
 "use strict";
-/* ---------- avatar artwork (inline SVG, no emoji fonts) ---------- */
-const E='<circle cx="38" cy="50" r="5" fill="#222"/><circle cx="62" cy="50" r="5" fill="#222"/><circle cx="39.5" cy="48.5" r="1.8" fill="#fff"/><circle cx="63.5" cy="48.5" r="1.8" fill="#fff"/>';
-const SM='<path d="M40 64q10 10 20 0" stroke="#222" stroke-width="3.5" fill="none" stroke-linecap="round"/>';
-const F=c=>`<circle cx="50" cy="54" r="30" fill="${c}"/>`;
-const AV={
-lion:'<circle cx="50" cy="52" r="40" fill="#b9651b"/>'+F("#f6c453")+'<circle cx="32" cy="28" r="9" fill="#f6c453"/><circle cx="68" cy="28" r="9" fill="#f6c453"/>'+E+'<ellipse cx="50" cy="60" rx="6" ry="4.5" fill="#8a4a12"/>'+SM,
-panda:'<circle cx="26" cy="26" r="12" fill="#222"/><circle cx="74" cy="26" r="12" fill="#222"/>'+F("#fff")+'<ellipse cx="38" cy="50" rx="8" ry="10" fill="#222" transform="rotate(20 38 50)"/><ellipse cx="62" cy="50" rx="8" ry="10" fill="#222" transform="rotate(-20 62 50)"/><circle cx="38" cy="50" r="3.5" fill="#fff"/><circle cx="62" cy="50" r="3.5" fill="#fff"/><ellipse cx="50" cy="62" rx="5" ry="3.5" fill="#222"/>',
-tiger:'<circle cx="26" cy="28" r="10" fill="#ff9d2e"/><circle cx="74" cy="28" r="10" fill="#ff9d2e"/>'+F("#ff9d2e")+'<path d="M50 26v10M36 30l4 8M64 30l-4 8M22 52h9M78 52h-9" stroke="#222" stroke-width="4" stroke-linecap="round"/><ellipse cx="50" cy="64" rx="12" ry="9" fill="#fff"/>'+E+'<ellipse cx="50" cy="58" rx="4" ry="3" fill="#222"/>'+SM.replace('M40 64','M42 66').replace('20 0','16 0'),
-bear:'<circle cx="28" cy="28" r="11" fill="#7a5230"/><circle cx="72" cy="28" r="11" fill="#7a5230"/><circle cx="28" cy="28" r="5" fill="#a5764a"/><circle cx="72" cy="28" r="5" fill="#a5764a"/>'+F("#8a5f3a")+'<ellipse cx="50" cy="62" rx="14" ry="11" fill="#d9b98c"/>'+E+'<ellipse cx="50" cy="57" rx="5" ry="4" fill="#3a2a1a"/>'+SM,
-fox:'<path d="M20 14l22 20-18 18zM80 14L58 34l18 18z" fill="#f2711c"/><path d="M50 88L22 52q28-16 56 0z" fill="#f2711c"/><path d="M50 88L30 62q20 6 40 0z" fill="#fff"/><circle cx="38" cy="50" r="5" fill="#222"/><circle cx="62" cy="50" r="5" fill="#222"/><circle cx="50" cy="74" r="4.5" fill="#222"/>',
-monkey:'<circle cx="18" cy="52" r="11" fill="#8a5a2b"/><circle cx="82" cy="52" r="11" fill="#8a5a2b"/>'+F("#8a5a2b")+'<ellipse cx="50" cy="60" rx="20" ry="16" fill="#f1cf9d"/>'+E+'<circle cx="45" cy="60" r="2" fill="#8a5a2b"/><circle cx="55" cy="60" r="2" fill="#8a5a2b"/><path d="M40 68q10 8 20 0" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/>',
-bunny:'<ellipse cx="36" cy="22" rx="8" ry="18" fill="#d8b8d8"/><ellipse cx="64" cy="22" rx="8" ry="18" fill="#d8b8d8"/><ellipse cx="36" cy="24" rx="4" ry="12" fill="#f2d8ef"/><ellipse cx="64" cy="24" rx="4" ry="12" fill="#f2d8ef"/>'+F("#e8cfe8")+E+'<path d="M50 58l-4-3h8z" fill="#d16ba0"/>'+SM,
-frog:'<circle cx="32" cy="30" r="12" fill="#6bd05a"/><circle cx="68" cy="30" r="12" fill="#6bd05a"/>'+F("#6bd05a")+'<circle cx="32" cy="30" r="7" fill="#fff"/><circle cx="68" cy="30" r="7" fill="#fff"/><circle cx="33" cy="31" r="3.5" fill="#222"/><circle cx="67" cy="31" r="3.5" fill="#222"/><path d="M32 64q18 16 36 0" stroke="#222" stroke-width="4" fill="none" stroke-linecap="round"/>',
-cat:'<path d="M20 12l20 18-18 14zM80 12L60 30l18 14z" fill="#9aa4b2"/>'+F("#9aa4b2")+E+'<path d="M50 58l-4-3h8z" fill="#ff7aa8"/><path d="M12 56h18M12 64h18M88 56H70M88 64H70" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>'+SM,
-owl:'<circle cx="34" cy="46" r="16" fill="#fff"/><circle cx="66" cy="46" r="16" fill="#fff"/>'+F("#8a6d4a")+'<circle cx="34" cy="46" r="13" fill="#fff"/><circle cx="66" cy="46" r="13" fill="#fff"/><circle cx="34" cy="46" r="6" fill="#222"/><circle cx="66" cy="46" r="6" fill="#222"/><circle cx="36" cy="44" r="2" fill="#fff"/><circle cx="68" cy="44" r="2" fill="#fff"/><path d="M50 56l-5 8h10z" fill="#f2a11c"/><path d="M28 22l10 10M72 22L62 32" stroke="#8a6d4a" stroke-width="6" stroke-linecap="round"/>',
-octopus:'<path d="M20 60q0-45 30-45t30 45q0 6-4 10l-4 14q-4 6-8 0l-2-8q-4 8-8 0l-2-6-2 6q-4 8-8 0l-2 8q-4 6-8 0l-4-14q-4-4-4-10z" fill="#a45cf0"/>'+E+'<circle cx="32" cy="60" r="5" fill="#ff9ad0" opacity=".8"/><circle cx="68" cy="60" r="5" fill="#ff9ad0" opacity=".8"/>'+SM,
-unicorn:'<path d="M50 4l7 26H43z" fill="#ffd54a"/><circle cx="30" cy="30" r="8" fill="#fff"/><circle cx="70" cy="30" r="8" fill="#fff"/>'+F("#fff")+'<path d="M24 40q-10 14 0 30" stroke="#ec4899" stroke-width="8" fill="none" stroke-linecap="round"/>'+E+'<circle cx="32" cy="62" r="5" fill="#ffb3d1" opacity=".8"/><circle cx="68" cy="62" r="5" fill="#ffb3d1" opacity=".8"/>'+SM,
-princess:'<path d="M28 30l8 10 14-18 14 18 8-10-4 22H32z" fill="#ffd54a"/><circle cx="50" cy="62" r="26" fill="#ffd9b8"/><path d="M24 58q-4-24 26-26t26 26q-12-14-26-14T24 58z" fill="#7a4a21"/>'+E.replace(/cy="50"/g,'cy="64"').replace(/cy="48.5"/g,'cy="62.5"')+'<path d="M42 76q8 7 16 0" stroke="#d6336c" stroke-width="3.5" fill="none" stroke-linecap="round"/>',
-dino:'<path d="M14 62q0-40 38-42t34 34q0 24-22 28H34Q14 86 14 62z" fill="#58c26b"/><circle cx="56" cy="40" r="6" fill="#fff"/><circle cx="58" cy="41" r="3" fill="#222"/><path d="M22 36l8 8-2-14zM34 24l8 6-1-14zM48 20l6 6 2-12z" fill="#2f9c4a"/><path d="M52 62q14 10 28 0" stroke="#222" stroke-width="3.5" fill="none" stroke-linecap="round"/><circle cx="76" cy="48" r="2" fill="#2f9c4a"/>',
-robot:'<path d="M50 6v14" stroke="#ddd" stroke-width="4"/><circle cx="50" cy="8" r="5" fill="#ff4d4d"/><rect x="18" y="20" width="64" height="58" rx="14" fill="#c9d3e0"/><rect x="26" y="34" width="48" height="26" rx="10" fill="#1d2a4a"/><circle cx="39" cy="47" r="6" fill="#4be1ff"/><circle cx="61" cy="47" r="6" fill="#4be1ff"/><rect x="36" y="66" width="28" height="6" rx="3" fill="#6d7a8f"/><rect x="10" y="40" width="8" height="18" rx="3" fill="#8f9bb0"/><rect x="82" y="40" width="8" height="18" rx="3" fill="#8f9bb0"/>',
-rocket:'<path d="M50 6q22 18 18 52H32Q28 24 50 6z" fill="#f4f6fb"/><circle cx="50" cy="36" r="8" fill="#4be1ff" stroke="#6d7a8f" stroke-width="3"/><path d="M32 46L18 66l16-4zM68 46l14 20-16-4z" fill="#ff4d6d"/><path d="M40 58h20l-10 28z" fill="#ffb300"/><path d="M45 58h10l-5 16z" fill="#ff6a00"/>'
-};
-const BG={lion:"#8a5a1b",panda:"#5b6670",tiger:"#a3560f",bear:"#5f4630",fox:"#96450e",monkey:"#5f4224",bunny:"#6a5570",frog:"#356b31",cat:"#4f5a66",owl:"#4a3d2c",octopus:"#4d3573",unicorn:"#6a4fb0",princess:"#8f4a68",dino:"#2a6b40",robot:"#33404f",rocket:"#2f3a55"};
+/* ---------- avatar artwork (generated images in avatars/) ---------- */
+const BG={lion:"#a3560f",panda:"#3f6b6b",tiger:"#b25a12",bear:"#6b4a2e",fox:"#c05a1e",monkey:"#4a6b2e",bunny:"#7a5a8a",frog:"#3f7a35",cat:"#4f5a66",owl:"#5a3d6b",unicorn:"#9a5fb0",princess:"#b0507a",octopus:"#3a5a9a",dino:"#3f8a4a",dragon:"#3f7a9a",fairy:"#3f8a5a",robot:"#12303f",astrocat:"#14264a",spacebuds:"#1c1850",planet:"#3c2060",rocket:"#1a2a55",alien:"#5a3f9a",astrodog:"#25356b",ufo:"#1c2c50",heroboy:"#2e5a9a",herogirl:"#8a3f8a",lightning:"#b08a1e",frost:"#4a7a9a",knight:"#1e3a3f",nature:"#3f7a3f"};
 const CATS=[
  {n:"חיות",i:["lion","panda","tiger","bear","fox","monkey","bunny","frog","cat","owl"]},
- {n:"דמויות אהובות",i:["unicorn","princess","octopus","dino"]},
- {n:"רובוטים וחלל",i:["robot","rocket"]}
+ {n:"גיבורי על",i:["heroboy","herogirl","lightning","frost","knight","nature"]},
+ {n:"רובוטים וחלל",i:["robot","astrocat","spacebuds","planet","rocket","alien","astrodog","ufo"]},
+ {n:"דמויות אהובות",i:["unicorn","princess","dragon","fairy","octopus","dino"]}
 ];
+function art(el,k){if(!BG[k])k="lion";el.innerHTML="";el.style.backgroundColor=BG[k];el.style.backgroundImage="url('avatars/"+k+".webp')"}
 const LOCK='<svg class="lockic" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2" fill="#fff" stroke="none"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
 const PENCIL='<svg viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>';
 
-function svg(k,c){return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="${c}"/>${AV[k]||AV.lion}</svg>`}
 
 /* ---------- state ---------- */
 const KEY="kidsProfiles.v2";
@@ -204,7 +184,7 @@ function render(){
   const b=document.createElement("button");b.className="p";
   const av=document.createElement("div");av.className="av";
   const avc=document.createElement("div");avc.className="avc";
-  if(p.photo){avc.style.backgroundImage=`url(${p.photo})`}else{avc.innerHTML=svg(p.emoji,p.color)}
+  if(p.photo){avc.style.backgroundImage=`url(${p.photo})`}else{art(avc,p.emoji)}
   av.appendChild(avc);
   const bd=document.createElement("span");bd.className="badge";bd.innerHTML=PENCIL;av.appendChild(bd);
   const nm=document.createElement("div");nm.className="nm";nm.textContent=p.name;
@@ -223,7 +203,7 @@ function enter(p){
  welcome(p)}
 function welcome(p){
  const a=$("#wav");a.style.cssText="";a.innerHTML="";
- if(p.photo){a.style.backgroundImage=`url(${p.photo})`}else{a.innerHTML=svg(p.emoji,p.color)}
+ if(p.photo){a.style.backgroundImage=`url(${p.photo})`}else{art(a,p.emoji)}
  $("#wname").textContent="שלום "+p.name+"!";
  show("scrWelcome")}
 $("#backBtn").onclick=()=>{render();show("scrPick")};
@@ -239,7 +219,7 @@ function openEdit(p){
  show("scrEdit")}
 function syncEditAv(){
  const a=$("#editAv");a.style.cssText="";a.innerHTML="";
- if(tmp.photo){a.style.backgroundImage=`url(${tmp.photo})`}else{a.innerHTML=svg(tmp.emoji,tmp.color)}
+ if(tmp.photo){a.style.backgroundImage=`url(${tmp.photo})`}else{art(a,tmp.emoji)}
  $("#removePhoto").hidden=!tmp.photo}
 function syncLock(){$("#lockSwitch").classList.toggle("on",!!tmp.lock);$("#lockState").textContent=tmp.lock?"מופעל":"כבוי"}
 function doneEdit(){
@@ -279,7 +259,7 @@ $("#delProfile").onclick=()=>{
   const h=document.createElement("h3");h.textContent=cat.n;sec.appendChild(h);
   const row=document.createElement("div");row.className="crow";
   cat.i.forEach(k=>{
-   const b=document.createElement("button");b.className="ca";b.innerHTML=svg(k,BG[k]);
+   const b=document.createElement("button");b.className="ca";art(b,k);
    b.onclick=()=>{tmp.emoji=k;tmp.color=BG[k];tmp.photo=null;syncEditAv();show("scrEdit")};
    row.appendChild(b)});
   sec.appendChild(row);wrap.appendChild(sec)})})();
