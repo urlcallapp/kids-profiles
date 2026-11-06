@@ -84,7 +84,7 @@ let ps=JSON.parse(localStorage.getItem(KEY)||"null")||[
 let edit=false,cur=null,tmp={};
 const $=s=>document.querySelector(s);
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(ps))}catch(e){alert("אין מקום לתמונה")}};
-function avStyle(p){return p.photo?`background-image:url(${p.photo})`:`background:${p.color}`}
+function avStyle(p){if(!(p.photo&&/^data:image\//.test(p.photo)))p.photo=null;return p.photo?`background-image:url(${p.photo})`:`background:${p.color}`}
 function render(){
  document.body.classList.toggle("edit",edit);
  $("#title").textContent=edit?"ניהול פרופילים":"מי צופה?";
