@@ -311,7 +311,7 @@ function buildAvCats(){
   const sec=document.createElement("div");sec.className="cat";
   const h=document.createElement("h3");h.textContent=cat.n;sec.appendChild(h);
   const row=document.createElement("div");row.className="crow";
-  if(gallery==="web"){
+  if(gallery==="web"&&(cat.k==="animals"||cat.k==="heroes")){
    WEBAV[cat.k].forEach(it=>{
     const b=document.createElement("button");b.className="ca";
     b.style.backgroundColor="#242428";
