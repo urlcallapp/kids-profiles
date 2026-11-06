@@ -2,129 +2,314 @@
 <html lang="he" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>מי צופה?</title>
 <style>
-*{box-sizing:border-box}
-body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% 0,#1b2a6b,#0b0f2a 70%);color:#fff;font-family:system-ui,"Segoe UI",Arial,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}
-h1{font-size:clamp(28px,5vw,48px);font-weight:600;margin:0 0 30px}
-#grid{display:flex;flex-wrap:wrap;gap:28px;justify-content:center;max-width:900px}
-.p{width:150px;text-align:center;cursor:pointer;background:none;border:0;color:#aab;font:inherit;position:relative}
-.av{width:150px;height:150px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:80px;border:3px solid transparent;transition:.2s;background-size:cover;background-position:center;overflow:hidden}
-.p:hover .av{border-color:#fff;transform:scale(1.07)}
-.p:hover{color:#fff}
-.nm{margin-top:10px;font-size:20px}
-.add .av{background:#222a55;font-size:70px;line-height:1}
-.av svg{display:block}
-#manage{margin-top:40px;padding:10px 28px;border:1px solid #aab;background:none;color:#aab;font-size:18px;letter-spacing:1px;cursor:pointer;border-radius:4px}
-#manage:hover{color:#fff;border-color:#fff}
-body.edit .av::after{content:"✏️";position:absolute;inset:0;width:150px;height:150px;background:#0008;display:flex;align-items:center;justify-content:center;font-size:48px;border-radius:14px}
-dialog{border:0;border-radius:16px;background:#14193f;color:#fff;padding:24px;width:min(92vw,420px);font:inherit}
-dialog::backdrop{background:#000a}
-label{display:block;margin:14px 0 6px;color:#aab}
-input[type=text]{width:100%;padding:10px;font-size:18px;border-radius:8px;border:1px solid #556;background:#0b0f2a;color:#fff}
-#emojis,#colors{display:flex;flex-wrap:wrap;gap:8px}
-#emojis button{width:54px;height:54px;padding:0;overflow:hidden;background:#0b0f2a;border:2px solid transparent;border-radius:10px;cursor:pointer}
-#colors button{width:34px;height:34px;border-radius:50%;border:3px solid transparent;cursor:pointer}
-.sel{border-color:#fff!important}
-.row{display:flex;gap:10px;margin-top:20px;justify-content:space-between}
-.row button{padding:10px 18px;font-size:16px;border-radius:8px;border:0;cursor:pointer}
-.save{background:#fff;color:#000}.del{background:#a22;color:#fff}.cancel{background:#334;color:#fff}
-#photoBtn{background:#334;color:#fff;border:0;padding:8px 14px;border-radius:8px;cursor:pointer}
-#welcome{display:none;text-align:center}
-#welcome .av{width:200px;height:200px;font-size:110px;margin:0 auto}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{margin:0;min-height:100vh;background:#0b0b0d;color:#fff;font-family:system-ui,"Segoe UI",Arial,sans-serif;overflow-x:hidden}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+[hidden]{display:none!important}
+
+/* top bar */
+#topbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;height:64px;padding:0 22px}
+#topbar .spacer{flex:1}
+#manageBtn{color:#e8e8ea;font-size:17px;padding:8px 4px}
+#manageBtn:active{opacity:.6}
+
+/* picker */
+#scrPick h1{text-align:center;font-size:27px;font-weight:700;margin:8px 0 44px;letter-spacing:.2px}
+#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:38px 20px;max-width:720px;margin:0 auto;padding:0 28px 60px}
+.p{display:flex;flex-direction:column;align-items:center;gap:14px;color:#fff;text-align:center}
+.p .av{width:100%;max-width:170px;aspect-ratio:1;position:relative;border-radius:50%;border:3px solid transparent;transition:transform .15s,border-color .15s}
+.avc{width:100%;height:100%;border-radius:50%;overflow:hidden;background-size:cover;background-position:center}
+.p:active .av{transform:scale(1.06)}
+@media(hover:hover){.p:hover .av{border-color:#fff;transform:scale(1.06)}}
+.p .nm{font-size:17px;font-weight:500}
+.p .lockic{width:17px;height:17px;opacity:.85;margin-top:-8px}
+.av svg{display:block;width:100%;height:100%}
+.p.add .av{border:2px solid #55565c}
+.p.add .av .plus{font-size:56px;font-weight:200;color:#c9c9cd;line-height:1;transform:translateY(-3px)}
+body.editmode .p .badge{position:absolute;bottom:-2%;inset-inline-end:-2%;width:30%;aspect-ratio:1;max-width:44px;background:#f5f5f7;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px #0009}
+.p .badge{display:none}
+.badge svg{width:52%;height:52%}
+
+/* sub screens */
+.subhead{display:flex;align-items:center;height:60px;padding:0 14px;position:relative}
+.subhead h2{position:absolute;left:0;right:0;text-align:center;font-size:19px;font-weight:600;margin:0;pointer-events:none}
+.subhead .iconbtn{padding:8px;display:flex}
+.subhead .iconbtn svg{width:26px;height:26px}
+.subhead .txtbtn{margin-inline-start:auto;color:#e8e8ea;font-size:16px;padding:8px 4px}
+
+/* edit profile */
+#editBody{max-width:460px;margin:0 auto;padding:18px 24px 60px;display:flex;flex-direction:column}
+#editAvWrap{align-self:center;position:relative;margin:6px 0 22px}
+#editAv{width:120px;height:120px;border-radius:50%;overflow:hidden;background-size:cover;background-position:center;position:relative}
+#editAvBtn{position:absolute;bottom:0;inset-inline-end:0;width:36px;height:36px;background:#f5f5f7;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px #0009}
+#editAvBtn svg{width:54%;height:54%}
+#nameInput{background:#2b2b30;border:0;border-radius:8px;color:#fff;font-size:18px;padding:14px 16px;width:100%;outline:none;text-align:center}
+#nameInput:focus{background:#34343a}
+.rows{margin-top:28px;border-top:1px solid #242428}
+.rrow{display:flex;align-items:center;width:100%;padding:17px 4px;border-bottom:1px solid #242428;font-size:17px;text-align:start;color:#e8e8ea;gap:10px}
+.rrow .sub{color:#8e8e93;font-size:14px}
+.rrow.danger{color:#ff594f;justify-content:center}
+.rrow .chev{margin-inline-start:auto;color:#636366;display:flex}
+.rrow .chev svg{width:16px;height:16px}
+.switch{margin-inline-start:auto;width:52px;height:32px;border-radius:16px;background:#39393d;position:relative;transition:.2s;flex-shrink:0}
+.switch::after{content:"";position:absolute;top:2px;inset-inline-start:2px;width:28px;height:28px;border-radius:50%;background:#fff;transition:.2s}
+.switch.on{background:#1db5d8}
+.switch.on::after{transform:translateX(-20px)}
+
+/* avatar picker */
+#avCats{padding:6px 0 60px}
+.cat{margin-bottom:30px}
+.cat h3{font-size:20px;font-weight:600;margin:0 22px 16px;color:#f2f2f4}
+.crow{display:flex;gap:16px;overflow-x:auto;padding:4px 22px;scrollbar-width:none}
+.crow::-webkit-scrollbar{display:none}
+.crow .ca{flex:0 0 auto;width:96px;height:96px;border-radius:50%;overflow:hidden;border:3px solid transparent;transition:transform .15s,border-color .15s;background-size:cover;background-position:center;padding:0}
+.crow .ca:active{transform:scale(1.08)}
+@media(hover:hover){.crow .ca:hover{border-color:#fff;transform:scale(1.08)}}
+
+/* welcome */
+#scrWelcome{min-height:calc(100vh - 64px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;padding-bottom:80px}
+#wav{width:170px;height:170px;border-radius:50%;overflow:hidden;background-size:cover;background-position:center}
+#wname{font-size:32px;margin:0}
+#backBtn{color:#9c9ca1;font-size:17px;padding:10px 22px;border:1px solid #4a4a4e;border-radius:6px}
+
+/* pin overlay */
+#pin{position:fixed;inset:0;z-index:50;background:#0b0b0df2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px}
+#pinTitle{font-size:20px;font-weight:600;margin:0}
+#pinSub{color:#8e8e93;font-size:14px;margin-top:-16px;min-height:18px}
+#dots{display:flex;gap:16px}
+#dots i{width:14px;height:14px;border-radius:50%;border:1.5px solid #8e8e93}
+#dots i.f{background:#fff;border-color:#fff}
+#pad{display:grid;grid-template-columns:repeat(3,74px);gap:14px}
+#pad button{width:74px;height:74px;border-radius:50%;background:#1c1c1e;font-size:27px;color:#fff}
+#pad button:active{background:#2c2c2e}
+#pinCancel{color:#9c9ca1;font-size:16px;padding:6px 16px}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-9px)}40%,80%{transform:translateX(9px)}}
+.shake{animation:shake .4s}
 </style>
 </head>
 <body>
-<h1 id="title">מי צופה?</h1>
-<div id="grid"></div>
-<button id="manage">ניהול פרופילים</button>
-<div id="welcome"><div class="av" id="wav"></div><h1 id="wname"></h1><button id="back" class="cancel" style="padding:10px 24px;border:0;border-radius:8px;color:#fff;background:#334;font-size:16px;cursor:pointer">החלפת פרופיל</button></div>
 
-<dialog id="dlg">
-<form method="dialog" id="f" onsubmit="return false">
-<label>שם</label><input type="text" id="name" maxlength="14">
-<label>דמות</label><div id="emojis"></div>
-<label>צבע</label><div id="colors"></div>
-<label>או תמונה</label><button type="button" id="photoBtn">בחירת תמונה</button> <button type="button" id="photoClr" class="cancel" style="padding:8px 14px;border:0;border-radius:8px;color:#fff;background:#334;cursor:pointer">הסרה</button>
+<header id="topbar"><button id="manageBtn">עריכת פרופילים</button><span class="spacer"></span></header>
+
+<main>
+<section id="scrPick">
+  <h1 id="pickTitle">מי צופה?</h1>
+  <div id="grid"></div>
+</section>
+
+<section id="scrEdit" hidden>
+  <div class="subhead">
+    <button class="iconbtn" id="editBack" aria-label="חזרה"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+    <h2 id="editTitle">עריכת פרופיל</h2>
+    <button class="txtbtn" id="editDone">סיום</button>
+  </div>
+  <div id="editBody">
+    <div id="editAvWrap"><div id="editAv"></div><button id="editAvBtn" aria-label="שנה דמות"><svg viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg></button></div>
+    <input id="nameInput" type="text" maxlength="14" placeholder="שם הפרופיל" autocomplete="off">
+    <div class="rows">
+      <button class="rrow" id="chooseAv">בחירת דמות<span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></span></button>
+      <button class="rrow" id="uploadPhoto">העלאת תמונה מהמכשיר<span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></span></button>
+      <button class="rrow" id="removePhoto" hidden>הסרת התמונה וחזרה לדמות</button>
+      <div class="rrow" id="lockRow">נעילה בקוד<span class="sub" id="lockState"></span><button class="switch" id="lockSwitch" aria-label="נעילה בקוד"></button></div>
+      <button class="rrow danger" id="delProfile">מחיקת פרופיל</button>
+    </div>
+  </div>
+</section>
+
+<section id="scrAvatars" hidden>
+  <div class="subhead">
+    <button class="iconbtn" id="avBack" aria-label="חזרה"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+    <h2>בחירת דמות</h2>
+    <button class="txtbtn" id="avSkip">דילוג</button>
+  </div>
+  <div id="avCats"></div>
+</section>
+
+<section id="scrWelcome" hidden>
+  <div id="wav"></div>
+  <h1 id="wname"></h1>
+  <button id="backBtn">החלפת פרופיל</button>
+</section>
+</main>
+
+<div id="pin" hidden>
+  <p id="pinTitle"></p>
+  <p id="pinSub"></p>
+  <div id="dots"><i></i><i></i><i></i><i></i></div>
+  <div id="pad"></div>
+  <button id="pinCancel">ביטול</button>
+</div>
+
 <input type="file" id="file" accept="image/*" hidden>
-<div class="row"><button class="save" id="save">שמירה</button><button class="del" id="del">מחיקה</button><button class="cancel" id="cancel">ביטול</button></div>
-</form>
-</dialog>
-<script>
 
+<script>
+"use strict";
+/* ---------- avatar artwork (inline SVG, no emoji fonts) ---------- */
 const E='<circle cx="38" cy="50" r="5" fill="#222"/><circle cx="62" cy="50" r="5" fill="#222"/><circle cx="39.5" cy="48.5" r="1.8" fill="#fff"/><circle cx="63.5" cy="48.5" r="1.8" fill="#fff"/>';
 const SM='<path d="M40 64q10 10 20 0" stroke="#222" stroke-width="3.5" fill="none" stroke-linecap="round"/>';
-const F=(c)=>`<circle cx="50" cy="54" r="30" fill="${c}"/>`;
+const F=c=>`<circle cx="50" cy="54" r="30" fill="${c}"/>`;
 const AV={
 lion:'<circle cx="50" cy="52" r="40" fill="#b9651b"/>'+F("#f6c453")+'<circle cx="32" cy="28" r="9" fill="#f6c453"/><circle cx="68" cy="28" r="9" fill="#f6c453"/>'+E+'<ellipse cx="50" cy="60" rx="6" ry="4.5" fill="#8a4a12"/>'+SM,
 panda:'<circle cx="26" cy="26" r="12" fill="#222"/><circle cx="74" cy="26" r="12" fill="#222"/>'+F("#fff")+'<ellipse cx="38" cy="50" rx="8" ry="10" fill="#222" transform="rotate(20 38 50)"/><ellipse cx="62" cy="50" rx="8" ry="10" fill="#222" transform="rotate(-20 62 50)"/><circle cx="38" cy="50" r="3.5" fill="#fff"/><circle cx="62" cy="50" r="3.5" fill="#fff"/><ellipse cx="50" cy="62" rx="5" ry="3.5" fill="#222"/>',
-unicorn:'<path d="M50 4l7 26H43z" fill="#ffd54a"/><circle cx="30" cy="30" r="8" fill="#fff"/><circle cx="70" cy="30" r="8" fill="#fff"/>'+F("#fff")+'<path d="M24 40q-10 14 0 30" stroke="#ec4899" stroke-width="8" fill="none" stroke-linecap="round"/>'+E+'<circle cx="32" cy="62" r="5" fill="#ffb3d1" opacity=".8"/><circle cx="68" cy="62" r="5" fill="#ffb3d1" opacity=".8"/>'+SM,
 tiger:'<circle cx="26" cy="28" r="10" fill="#ff9d2e"/><circle cx="74" cy="28" r="10" fill="#ff9d2e"/>'+F("#ff9d2e")+'<path d="M50 26v10M36 30l4 8M64 30l-4 8M22 52h9M78 52h-9" stroke="#222" stroke-width="4" stroke-linecap="round"/><ellipse cx="50" cy="64" rx="12" ry="9" fill="#fff"/>'+E+'<ellipse cx="50" cy="58" rx="4" ry="3" fill="#222"/>'+SM.replace('M40 64','M42 66').replace('20 0','16 0'),
-frog:'<circle cx="32" cy="30" r="12" fill="#6bd05a"/><circle cx="68" cy="30" r="12" fill="#6bd05a"/>'+F("#6bd05a")+'<circle cx="32" cy="30" r="7" fill="#fff"/><circle cx="68" cy="30" r="7" fill="#fff"/><circle cx="33" cy="31" r="3.5" fill="#222"/><circle cx="67" cy="31" r="3.5" fill="#222"/><path d="M32 64q18 16 36 0" stroke="#222" stroke-width="4" fill="none" stroke-linecap="round"/>',
+bear:'<circle cx="28" cy="28" r="11" fill="#7a5230"/><circle cx="72" cy="28" r="11" fill="#7a5230"/><circle cx="28" cy="28" r="5" fill="#a5764a"/><circle cx="72" cy="28" r="5" fill="#a5764a"/>'+F("#8a5f3a")+'<ellipse cx="50" cy="62" rx="14" ry="11" fill="#d9b98c"/>'+E+'<ellipse cx="50" cy="57" rx="5" ry="4" fill="#3a2a1a"/>'+SM,
+fox:'<path d="M20 14l22 20-18 18zM80 14L58 34l18 18z" fill="#f2711c"/><path d="M50 88L22 52q28-16 56 0z" fill="#f2711c"/><path d="M50 88L30 62q20 6 40 0z" fill="#fff"/><circle cx="38" cy="50" r="5" fill="#222"/><circle cx="62" cy="50" r="5" fill="#222"/><circle cx="50" cy="74" r="4.5" fill="#222"/>',
 monkey:'<circle cx="18" cy="52" r="11" fill="#8a5a2b"/><circle cx="82" cy="52" r="11" fill="#8a5a2b"/>'+F("#8a5a2b")+'<ellipse cx="50" cy="60" rx="20" ry="16" fill="#f1cf9d"/>'+E+'<circle cx="45" cy="60" r="2" fill="#8a5a2b"/><circle cx="55" cy="60" r="2" fill="#8a5a2b"/><path d="M40 68q10 8 20 0" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/>',
-fox:'<path d="M20 14l22 20-18 18zM80 14L58 34l18 18z" fill="#f2711c"/>'+'<path d="M50 88L22 52q28 -16 56 0z" fill="#f2711c"/><path d="M50 88L30 62q20 6 40 0z" fill="#fff"/>'+'<circle cx="38" cy="50" r="5" fill="#222"/><circle cx="62" cy="50" r="5" fill="#222"/><circle cx="50" cy="74" r="4.5" fill="#222"/>',
+bunny:'<ellipse cx="36" cy="22" rx="8" ry="18" fill="#d8b8d8"/><ellipse cx="64" cy="22" rx="8" ry="18" fill="#d8b8d8"/><ellipse cx="36" cy="24" rx="4" ry="12" fill="#f2d8ef"/><ellipse cx="64" cy="24" rx="4" ry="12" fill="#f2d8ef"/>'+F("#e8cfe8")+E+'<path d="M50 58l-4-3h8z" fill="#d16ba0"/>'+SM,
+frog:'<circle cx="32" cy="30" r="12" fill="#6bd05a"/><circle cx="68" cy="30" r="12" fill="#6bd05a"/>'+F("#6bd05a")+'<circle cx="32" cy="30" r="7" fill="#fff"/><circle cx="68" cy="30" r="7" fill="#fff"/><circle cx="33" cy="31" r="3.5" fill="#222"/><circle cx="67" cy="31" r="3.5" fill="#222"/><path d="M32 64q18 16 36 0" stroke="#222" stroke-width="4" fill="none" stroke-linecap="round"/>',
+cat:'<path d="M20 12l20 18-18 14zM80 12L60 30l18 14z" fill="#9aa4b2"/>'+F("#9aa4b2")+E+'<path d="M50 58l-4-3h8z" fill="#ff7aa8"/><path d="M12 56h18M12 64h18M88 56H70M88 64H70" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>'+SM,
+owl:'<circle cx="34" cy="46" r="16" fill="#fff"/><circle cx="66" cy="46" r="16" fill="#fff"/>'+F("#8a6d4a")+'<circle cx="34" cy="46" r="13" fill="#fff"/><circle cx="66" cy="46" r="13" fill="#fff"/><circle cx="34" cy="46" r="6" fill="#222"/><circle cx="66" cy="46" r="6" fill="#222"/><circle cx="36" cy="44" r="2" fill="#fff"/><circle cx="68" cy="44" r="2" fill="#fff"/><path d="M50 56l-5 8h10z" fill="#f2a11c"/><path d="M28 22l10 10M72 22L62 32" stroke="#8a6d4a" stroke-width="6" stroke-linecap="round"/>',
 octopus:'<path d="M20 60q0-45 30-45t30 45q0 6-4 10l-4 14q-4 6-8 0l-2-8q-4 8-8 0l-2-6-2 6q-4 8-8 0l-2 8q-4 6-8 0l-4-14q-4-4-4-10z" fill="#a45cf0"/>'+E+'<circle cx="32" cy="60" r="5" fill="#ff9ad0" opacity=".8"/><circle cx="68" cy="60" r="5" fill="#ff9ad0" opacity=".8"/>'+SM,
-robot:'<path d="M50 6v14" stroke="#ddd" stroke-width="4"/><circle cx="50" cy="8" r="5" fill="#ff4d4d"/><rect x="18" y="20" width="64" height="58" rx="14" fill="#c9d3e0"/><rect x="26" y="34" width="48" height="26" rx="10" fill="#1d2a4a"/><circle cx="39" cy="47" r="6" fill="#4be1ff"/><circle cx="61" cy="47" r="6" fill="#4be1ff"/><rect x="36" y="66" width="28" height="6" rx="3" fill="#6d7a8f"/><rect x="10" y="40" width="8" height="18" rx="3" fill="#8f9bb0"/><rect x="82" y="40" width="8" height="18" rx="3" fill="#8f9bb0"/>',
-rocket:'<path d="M50 6q22 18 18 52H32Q28 24 50 6z" fill="#f4f6fb"/><circle cx="50" cy="36" r="8" fill="#4be1ff" stroke="#6d7a8f" stroke-width="3"/><path d="M32 46L18 66l16-4zM68 46l14 20-16-4z" fill="#ff4d6d"/><path d="M40 58h20l-10 28z" fill="#ffb300"/><path d="M45 58h10l-5 16z" fill="#ff6a00"/>',
+unicorn:'<path d="M50 4l7 26H43z" fill="#ffd54a"/><circle cx="30" cy="30" r="8" fill="#fff"/><circle cx="70" cy="30" r="8" fill="#fff"/>'+F("#fff")+'<path d="M24 40q-10 14 0 30" stroke="#ec4899" stroke-width="8" fill="none" stroke-linecap="round"/>'+E+'<circle cx="32" cy="62" r="5" fill="#ffb3d1" opacity=".8"/><circle cx="68" cy="62" r="5" fill="#ffb3d1" opacity=".8"/>'+SM,
+princess:'<path d="M28 30l8 10 14-18 14 18 8-10-4 22H32z" fill="#ffd54a"/><circle cx="50" cy="62" r="26" fill="#ffd9b8"/><path d="M24 58q-4-24 26-26t26 26q-12-14-26-14T24 58z" fill="#7a4a21"/>'+E.replace(/cy="50"/g,'cy="64"').replace(/cy="48.5"/g,'cy="62.5"')+'<path d="M42 76q8 7 16 0" stroke="#d6336c" stroke-width="3.5" fill="none" stroke-linecap="round"/>',
 dino:'<path d="M14 62q0-40 38-42t34 34q0 24-22 28H34Q14 86 14 62z" fill="#58c26b"/><circle cx="56" cy="40" r="6" fill="#fff"/><circle cx="58" cy="41" r="3" fill="#222"/><path d="M22 36l8 8-2-14zM34 24l8 6-1-14zM48 20l6 6 2-12z" fill="#2f9c4a"/><path d="M52 62q14 10 28 0" stroke="#222" stroke-width="3.5" fill="none" stroke-linecap="round"/><circle cx="76" cy="48" r="2" fill="#2f9c4a"/>',
-princess:'<path d="M28 30l8 10 14-18 14 18 8-10-4 22H32z" fill="#ffd54a"/>'+'<circle cx="50" cy="62" r="26" fill="#ffd9b8"/><path d="M24 58q-4-24 26-26t26 26q-12-14-26-14T24 58z" fill="#7a4a21"/>'+E.replace(/cy="50"/g,'cy="64"').replace(/cy="48.5"/g,'cy="62.5"')+'<path d="M42 76q8 7 16 0" stroke="#d6336c" stroke-width="3.5" fill="none" stroke-linecap="round"/>',
-cat:'<path d="M20 12l20 18-18 14zM80 12L60 30l18 14z" fill="#9aa4b2"/>'+F("#9aa4b2")+E+'<path d="M50 58l-4-3h8z" fill="#ff7aa8"/><path d="M12 56h18M12 64h18M88 56H70M88 64H70" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>'+SM
+robot:'<path d="M50 6v14" stroke="#ddd" stroke-width="4"/><circle cx="50" cy="8" r="5" fill="#ff4d4d"/><rect x="18" y="20" width="64" height="58" rx="14" fill="#c9d3e0"/><rect x="26" y="34" width="48" height="26" rx="10" fill="#1d2a4a"/><circle cx="39" cy="47" r="6" fill="#4be1ff"/><circle cx="61" cy="47" r="6" fill="#4be1ff"/><rect x="36" y="66" width="28" height="6" rx="3" fill="#6d7a8f"/><rect x="10" y="40" width="8" height="18" rx="3" fill="#8f9bb0"/><rect x="82" y="40" width="8" height="18" rx="3" fill="#8f9bb0"/>',
+rocket:'<path d="M50 6q22 18 18 52H32Q28 24 50 6z" fill="#f4f6fb"/><circle cx="50" cy="36" r="8" fill="#4be1ff" stroke="#6d7a8f" stroke-width="3"/><path d="M32 46L18 66l16-4zM68 46l14 20-16-4z" fill="#ff4d6d"/><path d="M40 58h20l-10 28z" fill="#ffb300"/><path d="M45 58h10l-5 16z" fill="#ff6a00"/>'
 };
-const EM=Object.keys(AV);
-const NAMES_HE={};
-function svg(k,c){return `<svg viewBox="0 0 100 100" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="${c}"/>${AV[k]||AV.lion}</svg>`}
+const BG={lion:"#8a5a1b",panda:"#5b6670",tiger:"#a3560f",bear:"#5f4630",fox:"#96450e",monkey:"#5f4224",bunny:"#6a5570",frog:"#356b31",cat:"#4f5a66",owl:"#4a3d2c",octopus:"#4d3573",unicorn:"#6a4fb0",princess:"#8f4a68",dino:"#2a6b40",robot:"#33404f",rocket:"#2f3a55"};
+const CATS=[
+ {n:"חיות",i:["lion","panda","tiger","bear","fox","monkey","bunny","frog","cat","owl"]},
+ {n:"דמויות אהובות",i:["unicorn","princess","octopus","dino"]},
+ {n:"רובוטים וחלל",i:["robot","rocket"]}
+];
+const LOCK='<svg class="lockic" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2" fill="#fff" stroke="none"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
+const PENCIL='<svg viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>';
 
-const CO=["#e50914","#ff7a00","#f5c518","#2ecc71","#00bcd4","#3b82f6","#8b5cf6","#ec4899"];
+function svg(k,c){return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="${c}"/>${AV[k]||AV.lion}</svg>`}
+
+/* ---------- state ---------- */
 const KEY="kidsProfiles.v2";
 let ps=JSON.parse(localStorage.getItem(KEY)||"null")||[
- {id:1,name:"ילד 1",emoji:"lion",color:CO[1]},
- {id:2,name:"ילדה 2",emoji:"unicorn",color:CO[7]},
- {id:3,name:"ילד 3",emoji:"robot",color:CO[5]}];
+ {id:1,name:"ילד 1",emoji:"lion",color:BG.lion},
+ {id:2,name:"ילדה 2",emoji:"unicorn",color:BG.unicorn},
+ {id:3,name:"ילד 3",emoji:"robot",color:BG.robot}];
+ps.forEach(p=>{if(!(p.photo&&/^data:image\//.test(p.photo)))p.photo=null;if(!BG[p.emoji])p.emoji="lion";if(!p.color)p.color=BG[p.emoji]});
 let edit=false,cur=null,tmp={};
 const $=s=>document.querySelector(s);
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(ps))}catch(e){alert("אין מקום לתמונה")}};
-function avStyle(p){if(!(p.photo&&/^data:image\//.test(p.photo)))p.photo=null;return p.photo?`background-image:url(${p.photo})`:`background:${p.color}`}
+const SCREENS=["scrPick","scrEdit","scrAvatars","scrWelcome"];
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(ps))}catch(e){alert("אין מספיק מקום לשמור את התמונה")}};
+function show(id){SCREENS.forEach(s=>$("#"+s).hidden=s!==id);$("#topbar").style.visibility=id==="scrPick"?"visible":"hidden";window.scrollTo(0,0)}
+
+/* ---------- picker ---------- */
 function render(){
- document.body.classList.toggle("edit",edit);
- $("#title").textContent=edit?"ניהול פרופילים":"מי צופה?";
- $("#manage").textContent=edit?"סיום":"ניהול פרופילים";
+ document.body.classList.toggle("editmode",edit);
+ $("#pickTitle").textContent=edit?"עריכת פרופילים":"מי צופה?";
+ $("#manageBtn").textContent=edit?"סיום":"עריכת פרופילים";
  const g=$("#grid");g.innerHTML="";
- ps.forEach(p=>{const b=document.createElement("button");b.className="p";
-  b.innerHTML=`<div class="av" style="${p.photo?avStyle(p):""}">${p.photo?"":svg(p.emoji,p.color)}</div><div class="nm"></div>`;
-  b.querySelector(".nm").textContent=p.name;
-  b.onclick=()=>edit?open(p):pick(p);g.appendChild(b)});
- if(ps.length<8){const a=document.createElement("button");a.className="p add";
-  a.innerHTML=`<div class="av">+</div><div class="nm">הוספת פרופיל</div>`;
-  a.onclick=()=>open(null);g.appendChild(a)}
+ ps.forEach(p=>{
+  const b=document.createElement("button");b.className="p";
+  const av=document.createElement("div");av.className="av";
+  const avc=document.createElement("div");avc.className="avc";
+  if(p.photo){avc.style.backgroundImage=`url(${p.photo})`}else{avc.innerHTML=svg(p.emoji,p.color)}
+  av.appendChild(avc);
+  const bd=document.createElement("span");bd.className="badge";bd.innerHTML=PENCIL;av.appendChild(bd);
+  const nm=document.createElement("div");nm.className="nm";nm.textContent=p.name;
+  b.appendChild(av);b.appendChild(nm);
+  if(p.lock){const l=document.createElement("span");l.innerHTML=LOCK;b.appendChild(l.firstChild)}
+  b.onclick=()=>edit?openEdit(p):enter(p);
+  g.appendChild(b)});
+ if(ps.length<8){
+  const a=document.createElement("button");a.className="p add";
+  a.innerHTML='<div class="av"><div class="avc" style="display:flex;align-items:center;justify-content:center"><span class="plus">+</span></div></div><div class="nm">הוספת פרופיל</div>';
+  a.onclick=()=>openEdit(null);g.appendChild(a)}
 }
-function pick(p){$("#grid").style.display=$("#manage").style.display=$("#title").style.display="none";
- $("#welcome").style.display="block";const a=$("#wav");a.style.cssText=p.photo?avStyle(p):"";a.innerHTML=p.photo?"":svg(p.emoji,p.color);
- $("#wname").textContent="שלום "+p.name+"!"}
-$("#back").onclick=()=>{$("#welcome").style.display="none";$("#grid").style.display="flex";$("#manage").style.display="";$("#title").style.display="";}
-$("#manage").onclick=()=>{edit=!edit;render()};
-function open(p){cur=p;tmp=p?{...p}:{name:"",emoji:EM[0],color:CO[5]};
- $("#name").value=tmp.name;$("#del").style.display=p?"":"none";
- $("#emojis").innerHTML="";EM.forEach(e=>{const b=document.createElement("button");b.type="button";b.dataset.k=e;b.innerHTML=svg(e,"#334");
-  b.className=e==tmp.emoji?"sel":"";b.onclick=()=>{tmp.emoji=e;tmp.photo=null;mark()};$("#emojis").appendChild(b)});
- $("#colors").innerHTML="";CO.forEach(c=>{const b=document.createElement("button");b.type="button";b.style.background=c;
-  b.className=c==tmp.color?"sel":"";b.onclick=()=>{tmp.color=c;mark()};$("#colors").appendChild(b)});
- $("#dlg").showModal()}
-function mark(){[...$("#emojis").children].forEach(b=>b.classList.toggle("sel",b.dataset.k==tmp.emoji&&!tmp.photo));
- [...$("#colors").children].forEach(b=>b.classList.toggle("sel",b.style.background==hex(tmp.color)))}
-function hex(c){const d=document.createElement("i");d.style.background=c;return d.style.background}
-$("#photoBtn").onclick=()=>$("#file").click();
-$("#photoClr").onclick=()=>{tmp.photo=null;mark()};
-$("#file").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
- r.onload=()=>{const im=new Image();im.onload=()=>{const c=document.createElement("canvas");c.width=c.height=240;
-  const s=Math.min(im.width,im.height);c.getContext("2d").drawImage(im,(im.width-s)/2,(im.height-s)/2,s,s,0,0,240,240);
-  tmp.photo=c.toDataURL("image/jpeg",.8);mark()};im.src=r.result};r.readAsDataURL(f);e.target.value=""};
-$("#save").onclick=()=>{tmp.name=$("#name").value.trim()||"בלי שם";
- if(cur)Object.assign(cur,tmp);else ps.push({...tmp,id:Date.now()});
- save();$("#dlg").close();render()};
-$("#del").onclick=()=>{if(ps.length>1&&confirm("למחוק?")){ps=ps.filter(x=>x!==cur);save();$("#dlg").close();render()}};
-$("#cancel").onclick=()=>$("#dlg").close();
-render();
+$("#manageBtn").onclick=()=>{edit=!edit;render()};
+function enter(p){
+ if(p.lock){askPin("הזנת קוד",code=>code===p.lock?welcome(p):null,"קוד שגוי, נסו שוב");return}
+ welcome(p)}
+function welcome(p){
+ const a=$("#wav");a.style.cssText="";a.innerHTML="";
+ if(p.photo){a.style.backgroundImage=`url(${p.photo})`}else{a.innerHTML=svg(p.emoji,p.color)}
+ $("#wname").textContent="שלום "+p.name+"!";
+ show("scrWelcome")}
+$("#backBtn").onclick=()=>{render();show("scrPick")};
+
+/* ---------- edit profile ---------- */
+function openEdit(p){
+ cur=p;
+ tmp=p?{...p}:{name:"",emoji:CATS[0].i[0],color:BG[CATS[0].i[0]],photo:null,lock:null};
+ $("#nameInput").value=tmp.name||"";
+ $("#editTitle").textContent=p?"עריכת פרופיל":"פרופיל חדש";
+ $("#delProfile").style.display=p?"":"none";
+ syncEditAv();syncLock();
+ show("scrEdit")}
+function syncEditAv(){
+ const a=$("#editAv");a.style.cssText="";a.innerHTML="";
+ if(tmp.photo){a.style.backgroundImage=`url(${tmp.photo})`}else{a.innerHTML=svg(tmp.emoji,tmp.color)}
+ $("#removePhoto").hidden=!tmp.photo}
+function syncLock(){$("#lockSwitch").classList.toggle("on",!!tmp.lock);$("#lockState").textContent=tmp.lock?"מופעל":"כבוי"}
+function doneEdit(){
+ if($("#scrEdit").hidden)return;
+ tmp.name=$("#nameInput").value.trim()||"בלי שם";
+ if(cur)Object.assign(cur,tmp);else{cur={...tmp,id:Date.now()};ps.push(cur)}
+ save();render();show("scrPick")}
+$("#editDone").onclick=doneEdit;
+$("#editBack").onclick=doneEdit;
+$("#editAvBtn").onclick=()=>show("scrAvatars");
+$("#chooseAv").onclick=()=>show("scrAvatars");
+$("#avBack").onclick=()=>show("scrEdit");
+$("#avSkip").onclick=()=>show("scrEdit");
+$("#uploadPhoto").onclick=()=>$("#file").click();
+$("#removePhoto").onclick=()=>{tmp.photo=null;syncEditAv()};
+$("#file").onchange=e=>{
+ const f=e.target.files[0];if(!f)return;const r=new FileReader();
+ r.onload=()=>{const im=new Image();
+  im.onload=()=>{const c=document.createElement("canvas");c.width=c.height=240;
+   const s=Math.min(im.width,im.height);
+   c.getContext("2d").drawImage(im,(im.width-s)/2,(im.height-s)/2,s,s,0,0,240,240);
+   tmp.photo=c.toDataURL("image/jpeg",.8);syncEditAv()};
+  im.src=r.result};
+ r.readAsDataURL(f);e.target.value=""};
+$("#lockSwitch").onclick=()=>{
+ if(tmp.lock){tmp.lock=null;syncLock();return}
+ askPin("בחירת קוד נעילה",code=>{tmp.lock=code;syncLock();return true},"",true)};
+$("#delProfile").onclick=()=>{
+ if(ps.length<=1){alert("חייב להישאר לפחות פרופיל אחד");return}
+ if(confirm("למחוק את הפרופיל \""+ (cur?cur.name:"") +"\"?")){ps=ps.filter(x=>x!==cur);save();render();show("scrPick")}};
+
+/* ---------- avatar picker ---------- */
+(function buildCats(){
+ const wrap=$("#avCats");
+ CATS.forEach(cat=>{
+  const sec=document.createElement("div");sec.className="cat";
+  const h=document.createElement("h3");h.textContent=cat.n;sec.appendChild(h);
+  const row=document.createElement("div");row.className="crow";
+  cat.i.forEach(k=>{
+   const b=document.createElement("button");b.className="ca";b.innerHTML=svg(k,BG[k]);
+   b.onclick=()=>{tmp.emoji=k;tmp.color=BG[k];tmp.photo=null;syncEditAv();show("scrEdit")};
+   row.appendChild(b)});
+  sec.appendChild(row);wrap.appendChild(sec)})})();
+
+/* ---------- PIN overlay ---------- */
+let pinCb=null,pinErr="",pinBuf="";
+function askPin(title,cb,errMsg){
+ pinCb=cb;pinErr=errMsg||"קוד שגוי, נסו שוב";pinBuf="";
+ $("#pinTitle").textContent=title;$("#pinSub").textContent="";syncDots();
+ $("#pin").hidden=false}
+function syncDots(){[...$("#dots").children].forEach((d,i)=>d.classList.toggle("f",i<pinBuf.length))}
+(function buildPad(){
+ const pad=$("#pad");
+ ["1","2","3","4","5","6","7","8","9","","0","⌫"].forEach(k=>{
+  const b=document.createElement("button");b.textContent=k;
+  if(k)b.onclick=()=>{
+   if(k==="⌫"){pinBuf=pinBuf.slice(0,-1);syncDots();return}
+   if(pinBuf.length>=4)return;
+   pinBuf+=k;syncDots();
+   if(pinBuf.length===4){
+    const r=pinCb(pinBuf);
+    if(r===null||r===false){
+     $("#pinSub").textContent=pinErr;pinBuf="";syncDots();
+     $("#dots").classList.remove("shake");void $("#dots").offsetWidth;$("#dots").classList.add("shake")}
+    else{$("#pin").hidden=true}
+   }};
+  pad.appendChild(b)})})();
+$("#pinCancel").onclick=()=>{$("#pin").hidden=true;pinBuf=""};
+
+render();show("scrPick");
 </script>
 </body>
 </html>
