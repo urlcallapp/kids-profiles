@@ -100,6 +100,22 @@ body.editmode .p .badge{position:absolute;bottom:-2%;inset-inline-end:-2%;width:
 #pinCancel{color:#9c9ca1;font-size:16px;padding:6px 16px}
 @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-9px)}40%,80%{transform:translateX(9px)}}
 .shake{animation:shake .4s}
+/* gallery source gear + menu */
+#gearBtn{position:fixed;bottom:calc(16px + env(safe-area-inset-bottom,0px));left:calc(16px + env(safe-area-inset-left,0px));z-index:30;width:44px;height:44px;border-radius:50%;background:#1c1c1ecc;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px #0008}
+#gearBtn svg{width:22px;height:22px;stroke:#c9c9cd;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#gearBtn:active{transform:scale(.92)}
+#gearMenu{position:fixed;bottom:calc(70px + env(safe-area-inset-bottom,0px));left:calc(16px + env(safe-area-inset-left,0px));z-index:31;background:#1f1f23;border:1px solid #34343a;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;min-width:210px;box-shadow:0 8px 24px #000a}
+#gearMenu button{padding:14px 18px;font-size:16px;text-align:start;color:#e8e8ea;display:flex;align-items:center;justify-content:space-between;gap:12px}
+#gearMenu button:active{background:#2c2c32}
+#gearMenu button+button{border-top:1px solid #2c2c32}
+#gearMenu button .chk{color:#1db5d8;font-weight:700;visibility:hidden}
+#gearMenu button.on .chk{visibility:visible}
+#credits{position:fixed;inset:0;z-index:60;background:#0b0b0df2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:calc(20px + env(safe-area-inset-top,0px)) 20px calc(20px + env(safe-area-inset-bottom,0px))}
+#creditsBox{background:#1c1c1f;border-radius:14px;max-width:520px;width:100%;max-height:70vh;overflow-y:auto;padding:18px 20px}
+#creditsBox h3{margin:0 0 12px;font-size:18px}
+.crit{font-size:13px;color:#b9b9be;margin-bottom:10px;line-height:1.4}
+.crit a{color:#4aa8ff;text-decoration:none;word-break:break-all}
+#creditsClose{padding:10px 26px;border:1px solid #4a4a4e;border-radius:8px;color:#e8e8ea}
 </style>
 </head>
 <body>
@@ -147,6 +163,14 @@ body.editmode .p .badge{position:absolute;bottom:-2%;inset-inline-end:-2%;width:
 </section>
 </main>
 
+<button id="gearBtn" hidden aria-label="הגדרות"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></button>
+<div id="gearMenu" hidden>
+  <button id="gmBuiltin">דמויות האתר<span class="chk">✓</span></button>
+  <button id="gmWeb">תמונות מהאינטרנט<span class="chk">✓</span></button>
+  <button id="gmCredits">קרדיטים לתמונות</button>
+</div>
+<div id="credits" hidden><div id="creditsBox"><h3>קרדיטים לתמונות</h3><div id="creditsList"></div></div><button id="creditsClose">סגירה</button></div>
+
 <div id="pin" hidden>
   <p id="pinTitle"></p>
   <p id="pinSub"></p>
@@ -161,14 +185,27 @@ body.editmode .p .badge{position:absolute;bottom:-2%;inset-inline-end:-2%;width:
 "use strict";
 /* ---------- avatar artwork (generated images in avatars/) ---------- */
 const BG={lion:"#a3560f",panda:"#3f6b6b",tiger:"#b25a12",bear:"#6b4a2e",fox:"#c05a1e",monkey:"#4a6b2e",bunny:"#7a5a8a",frog:"#3f7a35",cat:"#4f5a66",owl:"#5a3d6b",unicorn:"#9a5fb0",princess:"#b0507a",octopus:"#3a5a9a",dino:"#3f8a4a",dragon:"#3f7a9a",fairy:"#3f8a5a",robot:"#12303f",astrocat:"#14264a",spacebuds:"#1c1850",planet:"#3c2060",rocket:"#1a2a55",alien:"#5a3f9a",astrodog:"#25356b",ufo:"#1c2c50",heroboy:"#2e5a9a",herogirl:"#8a3f8a",lightning:"#b08a1e",frost:"#4a7a9a",knight:"#1e3a3f",nature:"#3f7a3f"};
+const WEBAV={
+ animals:[{u:"https://live.staticflickr.com/3597/3402087606_e5c2fef887_b.jpg",t:"Facing the lion",c:"WELS.net",l:"by-nc",lu:"https://creativecommons.org/licenses/by-nc/2.0/",p:"https://www.flickr.com/photos/35027905@N04/3402087606"},{u:"https://live.staticflickr.com/8166/7249392528_83ffc093bf_b.jpg",t:"Close up of the Sumatran tigress",c:"Tambako the Jaguar",l:"by-nd",lu:"https://creativecommons.org/licenses/by-nd/2.0/",p:"https://www.flickr.com/photos/8070463@N03/7249392528"},{u:"https://live.staticflickr.com/1151/4596904100_8045c62f14_b.jpg",t:"Cat with big eyes",c:"Tambako the Jaguar",l:"by-nd",lu:"https://creativecommons.org/licenses/by-nd/2.0/",p:"https://www.flickr.com/photos/8070463@N03/4596904100"},{u:"https://live.staticflickr.com/8637/15733149666_012d5a6edf_b.jpg",t:"Closeup of a bush dog",c:"Tambako the Jaguar",l:"by-nd",lu:"https://creativecommons.org/licenses/by-nd/2.0/",p:"https://www.flickr.com/photos/8070463@N03/15733149666"},{u:"https://live.staticflickr.com/2872/9128090868_9e6042d445_b.jpg",t:"Smithsonian's National Zoo Red Panda Rusty",c:"Smithsonian's National Zoo",l:"by-nc-nd",lu:"https://creativecommons.org/licenses/by-nc-nd/2.0/",p:"https://www.flickr.com/photos/26357527@N05/9128090868"},{u:"https://live.staticflickr.com/3545/3641269561_63b801a1f3.jpg",t:"Panda face",c:"miss kAz",l:"by-nc-nd",lu:"https://creativecommons.org/licenses/by-nc-nd/2.0/",p:"https://www.flickr.com/photos/97747218@N00/3641269561"},{u:"https://images.rawpixel.com/editor_1024/cHJpdmF0ZS9zdGF0aWMvaW1hZ2Uvd2Vic2l0ZS8yMDIyLTA0L2xyL2ZyYW5pbWFsX2JlYWtfYmlyZF9icm93bi1pbWFnZS1reWJjOWdpay5qcGc.jpg",t:"Tawny owl face close up",c:"",l:"cc0",lu:"https://creativecommons.org/publicdomain/zero/1.0/",p:"https://www.rawpixel.com/image/6029188/photo-image-face-public-domain-nature"},{u:"https://live.staticflickr.com/5460/8927152332_f8b17f357a_b.jpg",t:"Rabbit facing me",c:"Tojosan",l:"by-nc-nd",lu:"https://creativecommons.org/licenses/by-nc-nd/2.0/",p:"https://www.flickr.com/photos/28069288@N00/8927152332",o:"center 45%",z:200},{u:"https://live.staticflickr.com/242/529469492_6667a4a59c_b.jpg",t:"Orange Eyed Frog",c:"Not So Much",l:"by-nc-sa",lu:"https://creativecommons.org/licenses/by-nc-sa/2.0/",p:"https://www.flickr.com/photos/26693132@N00/529469492"},{u:"https://live.staticflickr.com/65535/53029338654_5b7258ec2e_b.jpg",t:"Grizzly Bear Face",c:"Eric Kilby",l:"by-sa",lu:"https://creativecommons.org/licenses/by-sa/2.0/",p:"https://www.flickr.com/photos/8749778@N06/53029338654"}],
+ heroes:[{u:"https://live.staticflickr.com/7/7353921_851f8213b0.jpg",t:"my odd little man, I mean superhero",c:"massdistraction",l:"by-nc-nd",lu:"https://creativecommons.org/licenses/by-nc-nd/2.0/",p:"https://www.flickr.com/photos/49503124519@N01/7353921"},{u:"https://live.staticflickr.com/4234/35472818925_55cbf29125_b.jpg",t:"Yeticon",c:"Anna Fischer",l:"by-nc-nd",lu:"https://creativecommons.org/licenses/by-nc-nd/2.0/",p:"https://www.flickr.com/photos/27594459@N04/35472818925"},{u:"https://live.staticflickr.com/8309/7967668058_f1362c0f29_b.jpg",t:"Lego Batman Cosplay - Baltimore Comic-Con 2012",c:"Stephen Little",l:"by-nc",lu:"https://creativecommons.org/licenses/by-nc/2.0/",p:"https://www.flickr.com/photos/46292690@N00/7967668058"},{u:"https://live.staticflickr.com/65535/48308094727_5d283f04bb_b.jpg",t:"Spiderman cosplay",c:"sfkjr",l:"by-nc",lu:"https://creativecommons.org/licenses/by-nc/2.0/",p:"https://www.flickr.com/photos/49840571@N02/48308094727"},{u:"https://live.staticflickr.com/7184/27615921455_abbeab2c03_b.jpg",t:"#superbaby #supergirl #hero in training #prcc2016 #prcc #puertoricocomiccon2016 ",c:"bygloricom",l:"by-nd",lu:"https://creativecommons.org/licenses/by-nd/2.0/",p:"https://www.flickr.com/photos/66513192@N02/27615921455",o:"center 8%",z:150},{u:"https://live.staticflickr.com/6005/5982843905_f4fecfc132_b.jpg",t:"Wonder Woman cosplay by Loren Ziegler",c:"Da Da Z",l:"by-nd",lu:"https://creativecommons.org/licenses/by-nd/2.0/",p:"https://www.flickr.com/photos/63998580@N06/5982843905"},{u:"https://live.staticflickr.com/1352/802381588_3eb96b414b_b.jpg",t:"Hubert looking fierce, Maria as a caped superhero!",c:"chrissthegirl",l:"by-nc",lu:"https://creativecommons.org/licenses/by-nc/2.0/",p:"https://www.flickr.com/photos/62138406@N00/802381588"},{u:"https://live.staticflickr.com/7784/17177586749_99bac45fe2_b.jpg",t:"Pink & Blue Super Pop B-Pop Poster Image Super Pee Wee Kids Superhero Comic Cart",c:"nalends",l:"by-nd",lu:"https://creativecommons.org/licenses/by-nd/2.0/",p:"https://www.flickr.com/photos/130475615@N06/17177586749"},{u:"https://live.staticflickr.com/3167/2572235902_e111dfd051_b.jpg",t:"Mickey at Disney World",c:"Raymond Brown",l:"by",lu:"https://creativecommons.org/licenses/by/2.0/",p:"https://www.flickr.com/photos/15511611@N00/2572235902"},{u:"https://live.staticflickr.com/3557/3601491848_03c3404d5b_b.jpg",t:"1966 Batman Card Game",c:"andertoons",l:"by",lu:"https://creativecommons.org/licenses/by/2.0/",p:"https://www.flickr.com/photos/75545090@N00/3601491848"}],
+ space:[{u:"https://live.staticflickr.com/3262/2587091353_53a904c938_b.jpg",t:"CLOSE UP ROBOT FACE",c:"▓▒░ TORLEY ░▒▓",l:"by-sa",lu:"https://creativecommons.org/licenses/by-sa/2.0/",p:"https://www.flickr.com/photos/70285332@N00/2587091353"},{u:"https://live.staticflickr.com/5143/5677072988_eb26f60dc5_b.jpg",t:"Toy Robot, large",c:"Images George Rex",l:"by-sa",lu:"https://creativecommons.org/licenses/by-sa/2.0/",p:"https://www.flickr.com/photos/36692623@N06/5677072988"},{u:"https://live.staticflickr.com/7344/10108624725_89a2248bfa_b.jpg",t:"Astronaut Helmet",c:"Sam Howzit",l:"by",lu:"https://creativecommons.org/licenses/by/2.0/",p:"https://www.flickr.com/photos/12508217@N08/10108624725"},{u:"https://live.staticflickr.com/3420/3744284601_6c250f743b_b.jpg",t:"Jr. Astronaut Helmet",c:"tweenina",l:"by-nc-sa",lu:"https://creativecommons.org/licenses/by-nc-sa/2.0/",p:"https://www.flickr.com/photos/24431424@N02/3744284601"},{u:"https://live.staticflickr.com/4065/4298863875_c65dd54027_b.jpg",t:"Kennedy Space Center: Astronaut Space Suit",c:"MaryMakesDinner",l:"by-nc-sa",lu:"https://creativecommons.org/licenses/by-nc-sa/2.0/",p:"https://www.flickr.com/photos/11557559@N04/4298863875"},{u:"https://live.staticflickr.com/8647/16389062375_6053319c0f_b.jpg",t:"Sounding Rocket Launches Successfully from Alaska",c:"NASA Goddard Photo and Video",l:"by",lu:"https://creativecommons.org/licenses/by/2.0/",p:"https://www.flickr.com/photos/24662369@N07/16389062375"},{u:"https://media.sketchfab.com/models/9ab1eb3bb97f4e4a9305c0aae2d280a6/thumbnails/1afac906de914318bcd5209becd3f243/98298f4d72234c369678cb08db804982.jpeg",t:"Saturn (planet)",c:"SebastianSosnowski",l:"by",lu:"https://creativecommons.org/licenses/by/4.0/",p:"https://sketchfab.com/3d-models/9ab1eb3bb97f4e4a9305c0aae2d280a6"},{u:"https://live.staticflickr.com/127/373470957_23bb4374ae.jpg",t:"Aliens",c:"[Søren]",l:"by-nc-nd",lu:"https://creativecommons.org/licenses/by-nc-nd/2.0/",p:"https://www.flickr.com/photos/44124312001@N01/373470957"},{u:"https://live.staticflickr.com/5181/5779409164_a848f814c8_b.jpg",t:"Steven F. Udvar-Hazy Center: Space Shuttle Enterprise in the James McDonnell Spa",c:"Chris Devers",l:"by-nc-nd",lu:"https://creativecommons.org/licenses/by-nc-nd/2.0/",p:"https://www.flickr.com/photos/9161595@N03/5779409164"},{u:"https://live.staticflickr.com/7161/6831724767_1ba5d434e5_b.jpg",t:"Android robot toy",c:"eleZeta",l:"by-nd",lu:"https://creativecommons.org/licenses/by-nd/2.0/",p:"https://www.flickr.com/photos/49121171@N00/6831724767"}],
+ fantasy:[{u:"https://live.staticflickr.com/5252/5479105572_03d4890e75_b.jpg",t:"Unicorn & me (4)",c:"Anley Piers",l:"by",lu:"https://creativecommons.org/licenses/by/2.0/",p:"https://www.flickr.com/photos/51342261@N08/5479105572"},{u:"https://live.staticflickr.com/49/131087080_4951453c20_b.jpg",t:"nick wearing jane's princess dress - ball gown - _MG_3643.JPG",c:"sean dreilinger",l:"by-nc-sa",lu:"https://creativecommons.org/licenses/by-nc-sa/2.0/",p:"https://www.flickr.com/photos/43927576@N00/131087080"},{u:"https://live.staticflickr.com/8536/10168346495_47878cd6c9_b.jpg",t:"Chinese Dragon Art",c:"Stanley Zimny (Thank You for 52 Million ",l:"by-nc",lu:"https://creativecommons.org/licenses/by-nc/2.0/",p:"https://www.flickr.com/photos/82256086@N00/10168346495"},{u:"https://live.staticflickr.com/1276/4706085980_7abf2395df_b.jpg",t:"Edith Mendham (British, 1888-1911), 'Fairies in the battle of the flowers'",c:"sofi01",l:"by-nc",lu:"https://creativecommons.org/licenses/by-nc/2.0/",p:"https://www.flickr.com/photos/40842447@N08/4706085980",o:"center 10%",z:180},{u:"https://live.staticflickr.com/1/1188080_ff0af252a2.jpg",t:"octopus",c:"FriskoDude",l:"by-nc-nd",lu:"https://creativecommons.org/licenses/by-nc-nd/2.0/",p:"https://www.flickr.com/photos/90562745@N00/1188080"},{u:"https://live.staticflickr.com/46/154877897_a299d80baa_b.jpg",t:"Dinosaur",c:"InfoMofo",l:"by-sa",lu:"https://creativecommons.org/licenses/by-sa/2.0/",p:"https://www.flickr.com/photos/40689227@N00/154877897"},{u:"https://live.staticflickr.com/2693/4052841767_211f3dc7f4.jpg",t:"Mermaid",c:"Elena Kalis",l:"by-nc-nd",lu:"https://creativecommons.org/licenses/by-nc-nd/2.0/",p:"https://www.flickr.com/photos/37215271@N08/4052841767"},{u:"https://live.staticflickr.com/2225/2481261494_3520edfe12_b.jpg",t:"1914 Wizard of Oz Kids Book",c:"'Playingwithbrushes'",l:"by",lu:"https://creativecommons.org/licenses/by/2.0/",p:"https://www.flickr.com/photos/82518118@N00/2481261494"},{u:"https://live.staticflickr.com/1339/1103864168_0a8db036fc_b.jpg",t:"Knights/Armor at the Met",c:"chowmeyow",l:"by-nc-sa",lu:"https://creativecommons.org/licenses/by-nc-sa/2.0/",p:"https://www.flickr.com/photos/58887120@N00/1103864168"},{u:"https://live.staticflickr.com/7540/16079441372_87ce4b570b.jpg",t:"butterfly fairy",c:"Cornelia Kopp",l:"by-nc-nd",lu:"https://creativecommons.org/licenses/by-nc-nd/2.0/",p:"https://www.flickr.com/photos/14111752@N07/16079441372"}]
+};
 const CATS=[
- {n:"חיות",i:["lion","panda","tiger","bear","fox","monkey","bunny","frog","cat","owl"]},
- {n:"גיבורי על",i:["heroboy","herogirl","lightning","frost","knight","nature"]},
- {n:"רובוטים וחלל",i:["robot","astrocat","spacebuds","planet","rocket","alien","astrodog","ufo"]},
- {n:"דמויות אהובות",i:["unicorn","princess","dragon","fairy","octopus","dino"]}
+ {n:"חיות",k:"animals",i:["lion","panda","tiger","bear","fox","monkey","bunny","frog","cat","owl"]},
+ {n:"גיבורי על",k:"heroes",i:["heroboy","herogirl","lightning","frost","knight","nature"]},
+ {n:"רובוטים וחלל",k:"space",i:["robot","astrocat","spacebuds","planet","rocket","alien","astrodog","ufo"]},
+ {n:"דמויות אהובות",k:"fantasy",i:["unicorn","princess","dragon","fairy","octopus","dino"]}
 ];
 function art(el,k){if(!BG[k])k="lion";el.innerHTML="";el.style.backgroundColor=BG[k];el.style.backgroundImage="url('avatars/"+k+".webp?v=2')"}
 const LOCK='<svg class="lockic" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2" fill="#fff" stroke="none"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
+const GKEY="kidsProfiles.gallery";
+let gallery=localStorage.getItem(GKEY)==="web"?"web":"builtin";
+function paintAv(el,p){
+ el.style.cssText="";el.innerHTML="";
+ if(p.photo){el.style.backgroundImage=`url(${p.photo})`}
+ else if(p.web){el.style.backgroundColor=p.color||"#242428";el.style.backgroundImage=`url("${p.web}")`;el.style.backgroundPosition=p.wo||"center 22%";if(p.wz)el.style.backgroundSize=p.wz+"%"}
+ else{art(el,p.emoji)}}
 const PENCIL='<svg viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>';
 
 
@@ -183,7 +220,7 @@ let edit=false,cur=null,tmp={};
 const $=s=>document.querySelector(s);
 const SCREENS=["scrPick","scrEdit","scrAvatars","scrWelcome"];
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(ps))}catch(e){alert("אין מספיק מקום לשמור את התמונה")}};
-function show(id){SCREENS.forEach(s=>$("#"+s).hidden=s!==id);$("#topbar").style.visibility=id==="scrPick"?"visible":"hidden";window.scrollTo(0,0)}
+function show(id){SCREENS.forEach(s=>$("#"+s).hidden=s!==id);$("#topbar").style.visibility=id==="scrPick"?"visible":"hidden";$("#gearBtn").hidden=id!=="scrPick";$("#gearMenu").hidden=true;$("#credits").hidden=true;window.scrollTo(0,0)}
 
 /* ---------- picker ---------- */
 function render(){
@@ -195,7 +232,7 @@ function render(){
   const b=document.createElement("button");b.className="p";
   const av=document.createElement("div");av.className="av";
   const avc=document.createElement("div");avc.className="avc";
-  if(p.photo){avc.style.backgroundImage=`url(${p.photo})`}else{art(avc,p.emoji)}
+  paintAv(avc,p);
   av.appendChild(avc);
   const bd=document.createElement("span");bd.className="badge";bd.innerHTML=PENCIL;av.appendChild(bd);
   const nm=document.createElement("div");nm.className="nm";nm.textContent=p.name;
@@ -213,8 +250,7 @@ function enter(p){
  if(p.lock){askPin("הזנת קוד",code=>code===p.lock?welcome(p):null,"קוד שגוי, נסו שוב");return}
  welcome(p)}
 function welcome(p){
- const a=$("#wav");a.style.cssText="";a.innerHTML="";
- if(p.photo){a.style.backgroundImage=`url(${p.photo})`}else{art(a,p.emoji)}
+ paintAv($("#wav"),p);
  $("#wname").textContent="שלום "+p.name+"!";
  show("scrWelcome")}
 $("#backBtn").onclick=()=>{render();show("scrPick")};
@@ -222,16 +258,15 @@ $("#backBtn").onclick=()=>{render();show("scrPick")};
 /* ---------- edit profile ---------- */
 function openEdit(p){
  cur=p;
- tmp=p?{...p}:{name:"",emoji:CATS[0].i[0],color:BG[CATS[0].i[0]],photo:null,lock:null};
+ tmp=p?{...p}:{name:"",emoji:CATS[0].i[0],color:BG[CATS[0].i[0]],photo:null,web:null,wo:null,wz:null,lock:null};
  $("#nameInput").value=tmp.name||"";
  $("#editTitle").textContent=p?"עריכת פרופיל":"פרופיל חדש";
  $("#delProfile").style.display=p?"":"none";
  syncEditAv();syncLock();
  show("scrEdit")}
 function syncEditAv(){
- const a=$("#editAv");a.style.cssText="";a.innerHTML="";
- if(tmp.photo){a.style.backgroundImage=`url(${tmp.photo})`}else{art(a,tmp.emoji)}
- $("#removePhoto").hidden=!tmp.photo}
+ paintAv($("#editAv"),tmp);
+ $("#removePhoto").hidden=!tmp.photo&&!tmp.web}
 function syncLock(){$("#lockSwitch").classList.toggle("on",!!tmp.lock);$("#lockState").textContent=tmp.lock?"מופעל":"כבוי"}
 function doneEdit(){
  if($("#scrEdit").hidden)return;
@@ -240,19 +275,19 @@ function doneEdit(){
  save();render();show("scrPick")}
 $("#editDone").onclick=doneEdit;
 $("#editBack").onclick=()=>{if($("#scrEdit").hidden)return;cur=null;tmp={};render();show("scrPick")};
-$("#editAvBtn").onclick=()=>show("scrAvatars");
-$("#chooseAv").onclick=()=>show("scrAvatars");
+$("#editAvBtn").onclick=()=>{buildAvCats();show("scrAvatars")};
+$("#chooseAv").onclick=()=>{buildAvCats();show("scrAvatars")};
 $("#avBack").onclick=()=>show("scrEdit");
 $("#avSkip").onclick=()=>show("scrEdit");
 $("#uploadPhoto").onclick=()=>$("#file").click();
-$("#removePhoto").onclick=()=>{tmp.photo=null;syncEditAv()};
+$("#removePhoto").onclick=()=>{tmp.photo=null;tmp.web=null;tmp.wo=null;tmp.wz=null;syncEditAv()};
 $("#file").onchange=e=>{
  const f=e.target.files[0];if(!f)return;const r=new FileReader();
  r.onload=()=>{const im=new Image();
   im.onload=()=>{const c=document.createElement("canvas");c.width=c.height=240;
    const s=Math.min(im.width,im.height);
    c.getContext("2d").drawImage(im,(im.width-s)/2,(im.height-s)/2,s,s,0,0,240,240);
-   tmp.photo=c.toDataURL("image/jpeg",.8);syncEditAv()};
+   tmp.photo=c.toDataURL("image/jpeg",.8);tmp.web=null;tmp.wo=null;tmp.wz=null;syncEditAv()};
   im.src=r.result};
  r.readAsDataURL(f);e.target.value=""};
 $("#lockSwitch").onclick=()=>{
@@ -270,17 +305,57 @@ $("#delProfile").onclick=()=>{
  if(confirm("למחוק את הפרופיל \""+ (cur?cur.name:"") +"\"?")){ps=ps.filter(x=>x!==cur);save();render();show("scrPick")}};
 
 /* ---------- avatar picker ---------- */
-(function buildCats(){
- const wrap=$("#avCats");
+function buildAvCats(){
+ const wrap=$("#avCats");wrap.innerHTML="";
  CATS.forEach(cat=>{
   const sec=document.createElement("div");sec.className="cat";
   const h=document.createElement("h3");h.textContent=cat.n;sec.appendChild(h);
   const row=document.createElement("div");row.className="crow";
-  cat.i.forEach(k=>{
-   const b=document.createElement("button");b.className="ca";art(b,k);
-   b.onclick=()=>{tmp.emoji=k;tmp.color=BG[k];tmp.photo=null;syncEditAv();show("scrEdit")};
-   row.appendChild(b)});
-  sec.appendChild(row);wrap.appendChild(sec)})})();
+  if(gallery==="web"){
+   WEBAV[cat.k].forEach(it=>{
+    const b=document.createElement("button");b.className="ca";
+    b.style.backgroundColor="#242428";
+    b.style.backgroundImage=`url("${it.u}")`;
+    b.style.backgroundPosition=it.o||"center 22%";
+    if(it.z)b.style.backgroundSize=it.z+"%";
+    b.onclick=()=>pickWeb(it);
+    row.appendChild(b)});
+  }else{
+   cat.i.forEach(k=>{
+    const b=document.createElement("button");b.className="ca";art(b,k);
+    b.onclick=()=>{tmp.emoji=k;tmp.color=BG[k];tmp.photo=null;tmp.web=null;tmp.wo=null;tmp.wz=null;syncEditAv();show("scrEdit")};
+    row.appendChild(b)});
+  }
+  sec.appendChild(row);wrap.appendChild(sec)})}
+function pickWeb(it){
+ const im=new Image();
+ im.onload=()=>{tmp.web=it.u;tmp.wo=it.o||null;tmp.wz=it.z||null;tmp.photo=null;syncEditAv();show("scrEdit")};
+ im.onerror=()=>alert("התמונה לא זמינה כרגע, נסו תמונה אחרת");
+ im.src=it.u}
+buildAvCats();
+
+/* ---------- gallery source gear ---------- */
+function syncGearMenu(){
+ $("#gmBuiltin").classList.toggle("on",gallery==="builtin");
+ $("#gmWeb").classList.toggle("on",gallery==="web")}
+function setGallery(g){gallery=g;try{localStorage.setItem(GKEY,g)}catch(e){}syncGearMenu();$("#gearMenu").hidden=true}
+$("#gearBtn").onclick=()=>{const m=$("#gearMenu");m.hidden=!m.hidden;if(!m.hidden)syncGearMenu()};
+document.addEventListener("click",e=>{if(!$("#gearMenu").hidden&&!e.target.closest("#gearMenu")&&!e.target.closest("#gearBtn"))$("#gearMenu").hidden=true});
+$("#gmBuiltin").onclick=()=>setGallery("builtin");
+$("#gmWeb").onclick=()=>setGallery("web");
+$("#gmCredits").onclick=()=>{
+ $("#gearMenu").hidden=true;
+ const box=$("#creditsList");box.innerHTML="";
+ const CN={animals:"חיות",heroes:"גיבורי על",space:"רובוטים וחלל",fantasy:"דמויות אהובות"};
+ Object.keys(WEBAV).forEach(k=>WEBAV[k].forEach(it=>{
+  const d=document.createElement("div");d.className="crit";
+  d.appendChild(document.createTextNode(CN[k]+": "));
+  const a=document.createElement("a");a.href=it.p;a.target="_blank";a.rel="noopener";a.textContent=(it.t||"תמונה")+" - "+(it.c||"");
+  d.appendChild(a);
+  d.appendChild(document.createTextNode(" ("+it.l.toUpperCase()+")"));
+  box.appendChild(d)}));
+ $("#credits").hidden=false};
+$("#creditsClose").onclick=()=>{$("#credits").hidden=true};
 
 /* ---------- PIN overlay ---------- */
 let pinCb=null,pinErr="",pinBuf="";
