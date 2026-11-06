@@ -116,6 +116,8 @@ body.editmode .p .badge{position:absolute;bottom:-2%;inset-inline-end:-2%;width:
 .crit{font-size:13px;color:#b9b9be;margin-bottom:10px;line-height:1.4}
 .crit a{color:#4aa8ff;text-decoration:none;word-break:break-all}
 .cvc{margin:0 22px;font-size:13px;color:#8e8e93}.cvc a{color:#4aa8ff;text-decoration:none}
+#cvCredit{position:fixed;bottom:calc(14px + env(safe-area-inset-bottom,0px));left:0;right:0;text-align:center;font-size:12px;color:#636366;z-index:6;pointer-events:none;margin:0}
+#cvCredit a{color:#4aa8ff;pointer-events:auto}
 #creditsClose{padding:10px 26px;border:1px solid #4a4a4e;border-radius:8px;color:#e8e8ea}
 [dir="ltr"] .switch.on::after{transform:translateX(20px)}
 [dir="ltr"] .subhead .iconbtn svg{transform:scaleX(-1)}
@@ -166,6 +168,7 @@ body.editmode .p .badge{position:absolute;bottom:-2%;inset-inline-end:-2%;width:
   <button id="backBtn">החלפת פרופיל</button>
 </section>
 </main>
+<div id="cvCredit" class="cvc" hidden></div>
 
 <button id="gearBtn" hidden aria-label="הגדרות"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></button>
 <div id="gearMenu" hidden>
@@ -233,7 +236,14 @@ let edit=false,cur=null,tmp={};
 const $=s=>document.querySelector(s);
 const SCREENS=["scrPick","scrEdit","scrAvatars","scrWelcome"];
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(ps))}catch(e){alert(t("noSpace"))}};
-function show(id){SCREENS.forEach(s=>$("#"+s).hidden=s!==id);$("#topbar").style.visibility=id==="scrPick"?"visible":"hidden";$("#gearBtn").hidden=id!=="scrPick";$("#gearMenu").hidden=true;$("#credits").hidden=true;window.scrollTo(0,0)}
+function isCV(u){return !!(u&&u.indexOf("comicvine.gamespot.com")>=0)}
+function syncCvCredit(){
+ let v=false;
+ if(!$("#scrPick").hidden)v=ps.some(p=>isCV(p.web));
+ else if(!$("#scrWelcome").hidden)v=!!(wcur&&isCV(wcur.web));
+ else if(!$("#scrEdit").hidden)v=isCV(tmp.web);
+ $("#cvCredit").hidden=!v}
+function show(id){SCREENS.forEach(s=>$("#"+s).hidden=s!==id);$("#topbar").style.visibility=id==="scrPick"?"visible":"hidden";$("#gearBtn").hidden=id!=="scrPick";$("#gearMenu").hidden=true;$("#credits").hidden=true;window.scrollTo(0,0);syncCvCredit()}
 
 /* ---------- picker ---------- */
 function render(){
@@ -257,12 +267,15 @@ function render(){
   const a=document.createElement("button");a.className="p add";
   a.innerHTML='<div class="av"><div class="avc" style="display:flex;align-items:center;justify-content:center"><span class="plus">+</span></div></div><div class="nm">'+t("addProfile")+'</div>';
   a.onclick=()=>openEdit(null);g.appendChild(a)}
+ syncCvCredit()
 }
 $("#manageBtn").onclick=()=>{edit=!edit;render()};
 function enter(p){
  if(p.lock){askPin(t("enterPin"),code=>code===p.lock?welcome(p):null,t("wrongPin"));return}
  welcome(p)}
+let wcur=null;
 function welcome(p){
+ wcur=p;
  paintAv($("#wav"),p);
  $("#wname").textContent=t("hello")+p.name+"!";
  show("scrWelcome")}
@@ -424,6 +437,9 @@ function applyLang(){
  $("#avBack").setAttribute("aria-label",t("back"));
  $("#editAvBtn").setAttribute("aria-label",t("changeAv"));
  $("#lockSwitch").setAttribute("aria-label",t("pinLock"));
+ $("#cvCredit").innerHTML="";
+ $("#cvCredit").appendChild(document.createTextNode(t("cvCredit")+" "));
+ const cva=document.createElement("a");cva.href="https://comicvine.gamespot.com/";cva.target="_blank";cva.rel="noopener";cva.textContent="Comic Vine";$("#cvCredit").appendChild(cva);
  buildAvCats();syncLock();render()}
 applyLang();show("scrPick");
 </script>
