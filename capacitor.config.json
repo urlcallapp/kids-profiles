@@ -1,0 +1,7 @@
+{
+  "appId": "app.urlcall.kidsprofiles",
+  "appName": "Kids+",
+  "webDir": ".",
+  "backgroundColor": "#0b0b0d",
+  "android": { "allowMixedContent": false }
+}

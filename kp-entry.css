@@ -1,0 +1,33 @@
+/* kp-entry.css - profile-entry effects + mock streaming-feel home (additive).
+ * Pure CSS/DOM, no branding or trade dress. Honors prefers-reduced-motion
+ * in JS; these keyframes only run when the overlay is added. */
+.kp-entry{position:fixed;inset:0;z-index:80;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;background:#0b0b0e;animation:kpEntryFade 1.15s ease forwards}
+.kp-entry-avatar{width:160px;height:160px;border-radius:50%;background-color:var(--kp-color,#242428);background-size:cover;background-position:center;box-shadow:0 12px 40px #000a}
+.kp-entry-name{color:#fff;font-size:30px;font-weight:700;opacity:0;animation:kpEntryName .5s ease .45s forwards}
+@keyframes kpEntryFade{0%{opacity:0}12%{opacity:1}80%{opacity:1}100%{opacity:0;visibility:hidden}}
+@keyframes kpEntryName{to{opacity:1}}
+.kp-entry-zoomPop .kp-entry-avatar{animation:kpZoomPop .8s cubic-bezier(.2,1.6,.4,1)}
+@keyframes kpZoomPop{0%{transform:scale(.2) rotate(-30deg);opacity:0}100%{transform:scale(1) rotate(0)}}
+.kp-entry-slideCurtain{animation:kpEntryFade 1.15s ease forwards,kpCurtain 1.15s ease forwards;transform-origin:left}
+@keyframes kpCurtain{0%{transform:scaleX(0)}25%{transform:scaleX(1)}}
+.kp-entry-slideCurtain .kp-entry-avatar{animation:kpSlideIn .7s ease .15s both}
+@keyframes kpSlideIn{from{transform:translateX(-60vw)}to{transform:none}}
+.kp-entry-confettiBurst .kp-entry-avatar{animation:kpZoomPop .8s cubic-bezier(.2,1.6,.4,1)}
+.kp-entry-confettiBurst::after{content:"";position:absolute;inset:0;background-image:radial-gradient(circle 7px at 20% 30%,#f6c445 98%,transparent),radial-gradient(circle 6px at 75% 20%,#1db5d8 98%,transparent),radial-gradient(circle 8px at 60% 75%,#e56399 98%,transparent),radial-gradient(circle 6px at 35% 70%,#7ac74f 98%,transparent),radial-gradient(circle 7px at 85% 60%,#b08aea 98%,transparent);animation:kpConfetti 1s ease-out both}
+@keyframes kpConfetti{0%{transform:scale(.3);opacity:0}40%{opacity:1}100%{transform:scale(1.15);opacity:.9}}
+.kp-entry-rainbowWipe{background:linear-gradient(120deg,#e56399,#f6c445,#7ac74f,#1db5d8,#b08aea);animation:kpEntryFade 1.15s ease forwards,kpWipe 1.15s ease forwards}
+@keyframes kpWipe{0%{clip-path:inset(0 100% 0 0)}30%{clip-path:inset(0 0 0 0)}}
+
+/* mock home: deliberately content-less placeholder rows */
+.kp-home{position:fixed;inset:0;z-index:70;background:#0b0b0e;color:#fff;overflow:auto;padding:26px 34px}
+.kp-hero{display:flex;align-items:center;gap:18px;padding:18px 22px;border-radius:18px;background:linear-gradient(120deg,var(--kp-color,#242428),#0b0b0e 85%);margin-bottom:6px}
+.kp-hero-av{width:84px;height:84px;border-radius:50%;background-color:#1c1c20;background-size:cover;background-position:center;box-shadow:0 6px 20px #0008;flex:0 0 auto}
+.kp-home h2{font-size:26px;margin:0}
+.kp-home .kp-home-sub{color:#9a9aa2;font-size:14px;margin-bottom:18px}
+.kp-home h3{font-size:17px;color:#c9c9cd;margin:20px 0 10px}
+.kp-row{display:flex;gap:14px;overflow:hidden}
+.kp-tile{flex:0 0 auto;width:200px;height:112px;border-radius:10px;background-color:#16161a;background-size:cover;background-position:center;transition:transform .12s ease}
+.kp-tile.kp-focus{transform:scale(1.05)}
+.kp-tile.kp-focus{outline:4px solid #1db5d8;outline-offset:3px}
+.kp-home .kp-back{margin-top:22px;background:#2c2c32;color:#fff;border-radius:10px;padding:12px 18px;font-size:15px}
+@media (min-width:900px) and (orientation:landscape){.kp-tile{width:260px;height:146px}}

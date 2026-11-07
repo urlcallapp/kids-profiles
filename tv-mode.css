@@ -1,0 +1,17 @@
+/* tv-mode.css - Android TV presentation for Kids+ (additive).
+ * Applies on wide landscape screens (TV viewports). Phone layout untouched. */
+@media (min-width: 900px) and (orientation: landscape) {
+  #grid { max-width: 1080px; gap: 44px 40px; padding-top: 24px; }
+  #grid .p { transform-origin: center; transition: transform .12s ease; width: 200px; }
+  /* keep circles: width only, let the base aspect-ratio:1 set height, and
+   * override the base max-width clamp (leaving it produced ovals) */
+  #grid .p .av { width: 180px; max-width: none; height: auto; }
+  #grid .p .nm { font-size: 22px; }
+  #pickTitle { font-size: 34px; }
+  #gearBtn { width: 56px; height: 56px; }
+  /* D-pad focus ring (class-driven, not :focus, so mouse/touch stays clean) */
+  .kp-focus { outline: 4px solid #1db5d8 !important; outline-offset: 4px; border-radius: 14px; }
+  #grid .p.kp-focus { transform: scale(1.06); }
+  #gearMenu button { padding: 18px 22px; font-size: 18px; }
+  #syncPanel .card { max-width: 560px; }
+}

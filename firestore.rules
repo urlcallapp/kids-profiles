@@ -1,0 +1,132 @@
+rules_version = '2';
+// Draft v5 Firestore security rules for Kids+ sync.
+// v4: profiles moved to a per-profile subcollection so EVERY profile field is
+// validated server-side (rules cannot iterate list items, so a single state
+// doc made per-profile validation impossible). Settings live in the user doc.
+// Verified against the Firebase Emulator Suite (test-sync.mjs); do not deploy
+// to a real project without re-running those tests.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /users/{userId} {
+      function isOwner() { return request.auth != null && request.auth.uid == userId; }
+      function parentDoc() {
+        return get(/databases/$(database)/documents/users/$(userId)).data;
+      }
+      function isPairedViaGet() {
+        return request.auth != null
+          && exists(/databases/$(database)/documents/users/$(userId))
+          && request.auth.uid in parentDoc().devices;
+      }
+      // For the user doc itself, resource is available (no extra read).
+      function isPairedResource() {
+        return request.auth != null && resource != null
+          && request.auth.uid in resource.data.devices;
+      }
+      function validSettings() {
+        let d = request.resource.data;
+        return d.keys().hasOnly(['gallery', 'lang', 'devices', 'updatedAt'])
+          && d.gallery in ['builtin', 'web']
+          && d.lang in ['he', 'en']
+          && (!d.keys().hasAny(['devices'])
+              || (d.devices is list && d.devices.size() <= 20));
+      }
+      function devicesUntouched() {
+        return !request.resource.data.diff(resource.data).affectedKeys().hasAny(['devices']);
+      }
+      allow read: if isOwner() || isPairedResource();
+      allow create: if isOwner() && validSettings();
+      allow update: if validSettings() && (isOwner() || (isPairedResource() && devicesUntouched()));
+      allow delete: if false;
+
+      // One document per kid profile: users/{uid}/profiles/{profileId}.
+      // Each doc carries devices[] (owner-maintained replica of the parent
+      // list) so revocation re-evaluates live listeners server-side.
+      match /profiles/{profileId} {
+        function validProfile() {
+          let d = request.resource.data;
+          return d.keys().hasOnly(['id', 'name', 'emoji', 'color', 'photo', 'web', 'wo', 'wz', 'devices', 'updatedAt'])
+            && d.id is int && d.id > 0 && d.id < 999999999999999
+            && d.name is string && d.name.size() >= 1 && d.name.size() <= 40
+            && d.emoji is string && d.emoji.size() <= 20
+            && d.color is string && d.color.matches('^#[0-9a-fA-F]{6}$')
+            // base64 raster data URLs only: no SVG (defense-in-depth script
+            // vector), no chars that could break markup/CSS contexts
+            && (d.photo == null || (d.photo is string
+                && d.photo.size() <= 400000
+                && d.photo.matches('^data:image/(png|jpeg|webp);base64,[A-Za-z0-9+/=]*$')))
+            // conservative URL charset: no quotes, parens, whitespace
+            && (d.web == null || (d.web is string
+                && d.web.size() <= 500
+                && d.web.matches('^https?://[A-Za-z0-9._~:/?#@!$&*+,;=%-]+$')))
+            && (d.wo == null || (d.wo is string && d.wo.size() <= 40))
+            && (d.wz == null || (d.wz is number && d.wz >= 50 && d.wz <= 500))
+            && d.devices is list && d.devices.size() <= 20
+            && d.updatedAt is timestamp;
+        }
+        function parentDevices() {
+          return parentDoc().get('devices', []);
+        }
+        // Read access rides on the doc's OWN devices list - this is what
+        // makes revocation cut live listeners (verified in emulator).
+        allow read: if isOwner() || (resource != null && request.auth.uid in resource.data.devices);
+        // Create: the new doc's devices must equal the parent's current list,
+        // and a non-owner creator must be in it.
+        allow create: if validProfile()
+          && exists(/databases/$(database)/documents/users/$(userId))
+          && request.resource.data.devices == parentDevices()
+          && (isOwner() || request.auth.uid in parentDevices());
+        // Update: owner may change anything valid (incl. devices, for
+        // pair/revoke batches); a paired device must keep devices unchanged.
+        allow update: if validProfile() && (
+          isOwner()
+          || (request.auth.uid in resource.data.devices
+              && request.resource.data.devices == resource.data.devices));
+        allow delete: if isOwner() || (resource != null && request.auth.uid in resource.data.devices);
+      }
+    }
+
+    match /pairCodes/{code} {
+      // TV (anonymous auth) creates a code naming itself; expiry bounded so a
+      // TV cannot mint a long-lived or eternal code.
+      allow create: if request.auth != null
+        && request.resource.data.deviceUid == request.auth.uid
+        && request.resource.data.ownerUid == null
+        && request.resource.data.expiresAt is number
+        && request.resource.data.expiresAt > request.time.toMillis()
+        && request.resource.data.expiresAt <= request.time.toMillis() + 600000;
+
+      // Only the TV that created the code may read it back. The approving
+      // phone CANNOT read codes - approval is a blind write (no enumeration
+      // oracle).
+      allow get, list: if request.auth != null
+        && resource.data.deviceUid == request.auth.uid;
+
+      // Approval: signed-in phone sets ownerUid to itself, exactly once,
+      // before expiry, changing nothing else.
+      allow update: if request.auth != null
+        && resource.data.ownerUid == null
+        && resource.data.expiresAt > request.time.toMillis()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['ownerUid'])
+        && request.resource.data.ownerUid == request.auth.uid;
+
+      allow delete: if false;
+    }
+
+    match /deviceRegistrations/{deviceUid} {
+      function pairCode() {
+        return get(/databases/$(database)/documents/pairCodes/$(request.resource.data.code)).data;
+      }
+      allow create: if request.auth != null
+        && request.auth.uid == deviceUid
+        && request.resource.data.keys().hasOnly(['code', 'ownerUid', 'createdAt', 'label'])
+        && exists(/databases/$(database)/documents/pairCodes/$(request.resource.data.code))
+        && pairCode().deviceUid == request.auth.uid
+        && pairCode().ownerUid == request.resource.data.ownerUid;
+      allow get: if request.auth != null && request.auth.uid == deviceUid;
+      allow list: if request.auth != null && resource.data.ownerUid == request.auth.uid;
+      allow update: if false;
+      allow delete: if request.auth != null && resource.data.ownerUid == request.auth.uid;
+    }
+  }
+}
