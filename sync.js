@@ -169,9 +169,46 @@ function emit() {
     profiles: curProfiles || [],
     gallery: curSettings ? curSettings.gallery : null,
     lang: curSettings ? curSettings.lang : null,
+    // complete = both snapshots arrived; the app holds the local view until
+    // then, so cloud data never flashes/replaces the picker half-loaded.
+    complete: curSettings !== null && curProfiles !== null,
   };
   writeCache(state);
+  // Reconcile the local backup BEFORE notifying the app: the hold-and-ask
+  // check in onRemoteState keys off hasLocalBackup(), so it must already
+  // reflect this cloud state when the callback runs.
+  if (curSettings !== null && curProfiles !== null) reconcileLocalBackup();
   if (onRemoteState) onRemoteState(state);
+}
+
+/* Keep kidsProfiles.localBackup an accurate answer to "does this device's
+ * signed-out data differ from the cloud?". Evaluated only once BOTH cloud
+ * snapshots have arrived (backing up against a not-yet-loaded cloud would
+ * stash a bogus duplicate of identical data, and the old once-only backup
+ * then went stale forever). While they differ the backup mirrors CURRENT
+ * local data; once they match again the backup is dropped. Base keys are
+ * never touched, so the device's data survives regardless. */
+function reconcileLocalBackup() {
+  try {
+    const local = readLocal();
+    // Compare only the synced fields: a device-local lock never leaves the
+    // device (normalizeProfile drops it), so it must not count as a diff.
+    const norm = (p) => ({ id: p.id, name: p.name, emoji: p.emoji, color: p.color, photo: p.photo || null, web: p.web || null, wo: p.wo || null, wz: p.wz || null });
+    const same = (a, b) => a.name === b.name && a.emoji === b.emoji && a.color === b.color && a.photo === b.photo && a.web === b.web && a.wo === b.wo && a.wz === b.wz;
+    const lp = local.profiles && local.profiles.length ? local.profiles.map(norm) : null;
+    if (!lp) { localStorage.removeItem(LS.backup); return; }
+    // A conflict exists only while some device profile is NOT already in the
+    // cloud. After a merge/replace every local profile is, so the backup
+    // clears itself instead of prompting again on the next sign-in.
+    const cp = (curProfiles || []).map(norm);
+    const missing = lp.some((l) => !cp.some((c) => same(l, c)));
+    if (!missing) {
+      localStorage.removeItem(LS.backup);
+      return;
+    }
+    const s = JSON.stringify(local);
+    if (localStorage.getItem(LS.backup) !== s) localStorage.setItem(LS.backup, s);
+  } catch (e) {}
 }
 
 function resubscribe() {
@@ -187,7 +224,6 @@ function resubscribe() {
       return;
     }
     curSettings = snap.exists() ? snap.data() : null;
-    if (snap.exists()) backupLocalOnce();
     emit();
   }, handleListenerError); // permission-denied: awaiting confirm / revoked
   unsubProfiles = onSnapshot(profilesQuery(), (snap) => {
@@ -215,19 +251,7 @@ function handleListenerError(err) {
   if (onRemoteState) onRemoteState(null);
 }
 
-/* If this device has local profiles that differ from the cloud, stash them so
- * the UI can offer "keep this device's profiles" (api.useLocalInstead). */
-function backupLocalOnce() {
-  try {
-    const local = readLocal();
-    if (!local.profiles || local.profiles.length === 0) return;
-    if (localStorage.getItem(LS.backup)) return; // keep the first backup
-    const cloudJson = JSON.stringify(curProfiles || []);
-    if (JSON.stringify(local.profiles) !== cloudJson) {
-      localStorage.setItem(LS.backup, JSON.stringify(local));
-    }
-  } catch (e) {}
-}
+
 
 /* Rules require the full normalized key set on every profile write,
  * including the devices[] replica (must equal the parent's current list). */
@@ -269,6 +293,60 @@ export async function useLocalInstead() {
   let state;
   try { state = JSON.parse(raw); } catch (e) { return false; }
   await pushState(state);
+  localStorage.removeItem(LS.backup);
+  return true;
+}
+
+/* What the backup holds, for the chooser UI (names only; no data leaves the
+ * device until the owner picks merge/replace). */
+export function getLocalBackupInfo() {
+  const raw = localStorage.getItem(LS.backup);
+  if (!raw) return null;
+  try {
+    const s = JSON.parse(raw);
+    const profiles = Array.isArray(s.profiles) ? s.profiles : [];
+    return { count: profiles.length, names: profiles.map((p) => String(p.name || "?")).slice(0, 20) };
+  } catch (e) { return null; }
+}
+
+/* Names currently in the cloud (null until the first snapshot arrives). */
+export function cloudProfileNames() {
+  return curProfiles ? curProfiles.map((p) => String(p.name || "?")) : null;
+}
+
+function sameSyncedProfile(a, b) {
+  return a.name === b.name && a.emoji === b.emoji && a.color === b.color &&
+    (a.photo || null) === (b.photo || null) && (a.web || null) === (b.web || null);
+}
+
+/* Merge the backed-up device profiles INTO the cloud: cloud profiles stay,
+ * device-only profiles are added, and a profile whose id collides with a
+ * different cloud profile is kept under a fresh id - nothing on either side
+ * is lost. Reads use profilesQuery() so a paired TV (constrained reads) can
+ * merge too. Fresh server reads, no reliance on listener timing. */
+export async function mergeLocalInstead() {
+  const raw = localStorage.getItem(LS.backup);
+  if (!raw) return false;
+  let local;
+  try { local = JSON.parse(raw); } catch (e) { return false; }
+  const localProfiles = Array.isArray(local.profiles) ? local.profiles : [];
+  const snap = await getDocs(profilesQuery());
+  const cloudProfiles = snap.docs.map((d) => d.data());
+  const byId = new Map(cloudProfiles.map((p) => [String(p.id), p]));
+  const merged = cloudProfiles.map((p) => ({
+    id: p.id, name: p.name, emoji: p.emoji, color: p.color,
+    photo: p.photo || null, web: p.web || null, wo: p.wo || null, wz: p.wz || null,
+  }));
+  let nextId = Math.max(Date.now(), 0, ...merged.map((p) => Number(p.id) || 0)) + 1;
+  for (const lp of localProfiles) {
+    const existing = byId.get(String(lp.id));
+    if (!existing) { merged.push(lp); byId.set(String(lp.id), lp); continue; }
+    if (sameSyncedProfile(existing, lp)) continue; // identical on both sides
+    merged.push({ ...lp, id: nextId++ }); // id collision, different content: keep both
+  }
+  const sdoc = await getDoc(settingsRef());
+  const cs = sdoc.exists() ? sdoc.data() : {};
+  await pushState({ profiles: merged, gallery: cs.gallery ?? local.gallery, lang: cs.lang ?? local.lang });
   localStorage.removeItem(LS.backup);
   return true;
 }
@@ -403,7 +481,7 @@ export async function unpairThisDevice() {
 }
 
 const api = {
-  pushState, hasLocalBackup, useLocalInstead,
+  pushState, hasLocalBackup, useLocalInstead, getLocalBackupInfo, cloudProfileNames, mergeLocalInstead,
   signInWithGoogle, sendEmailLink, completeEmailLinkIfPresent, signOut,
   beginTvPairing, approveTvCode, watchPendingDevices,
   confirmPairedDevice, revokeTvDevice, unpairThisDevice,

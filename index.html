@@ -303,11 +303,22 @@ function show(id){SCREENS.forEach(s=>$("#"+s).hidden=s!==id);$("#topbar").style.
  * MUST stop rendering cloud data: restore the snapshot (or base localStorage,
  * or empty), never keep the last cloud state on screen. */
 window.KPprePs=null;
+window.KPheldState=null;window.KPconflictResolved=false;
 window.KPonRemote=function(state){
 if(!state){
+window.KPheldState=null;window.KPconflictResolved=false;
 if(window.KPprePs){ps=window.KPprePs;window.KPprePs=null}
 else{try{ps=JSON.parse(localStorage.getItem("kidsProfiles.v2")||"null")||[]}catch(e){ps=[]}}
 render();return}
+/* First-sync conflict: NEVER let cloud data replace the visible picker before
+ * the owner explicitly chooses (merge / keep cloud / replace cloud). Hold the
+ * local view and surface the blocking chooser instead. */
+if(window.KPsync&&window.KPsync.signedIn&&!window.KPconflictResolved){
+if(!state.complete)return; // cloud not fully loaded yet: keep local view
+if(window.KPsync.hasLocalBackup&&window.KPsync.hasLocalBackup()){
+window.KPheldState=state;
+if(window.KPshowConflict)window.KPshowConflict();
+return}}
 if(!window.KPprePs){try{window.KPprePs=JSON.parse(JSON.stringify(ps))}catch(e){window.KPprePs=[]}}
 if(Array.isArray(state.profiles))ps=state.profiles;
 if(state.gallery)gallery=state.gallery;if(state.lang)lang=state.lang;

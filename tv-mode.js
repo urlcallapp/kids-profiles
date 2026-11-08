@@ -77,7 +77,10 @@
       current.click();
     } else if (e.key === "Escape" || e.key === "Backspace" || e.key === "GoBack" || e.keyCode === 461 /* TV back */) {
       const sp = document.getElementById("syncPanel");
-      if (sp && !sp.hidden) { sp.hidden = true; e.preventDefault(); return; }
+      // A blocking sync panel (first-sync conflict chooser) must not be
+      // dismissed by Back - the owner picks an option explicitly.
+      if (sp && !sp.hidden && !sp.classList.contains("blocking")) { sp.hidden = true; e.preventDefault(); return; }
+      if (sp && !sp.hidden) { e.preventDefault(); return; }
       const gm = document.getElementById("gearMenu");
       if (gm && !gm.hidden) { gm.hidden = true; e.preventDefault(); return; }
       const home = document.querySelector(".kp-home");

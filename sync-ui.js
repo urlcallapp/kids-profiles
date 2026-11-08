@@ -18,6 +18,15 @@ export function initSyncUI(sync) {
       close: "סגירה", err: "משהו השתבש, נסו שוב", codeBad: "הקוד לא נמצא או שפג תוקפו",
       waitingConfirm: "הקוד אושר, ממתינים לאישור סופי בטלפון…",
       paired: "המכשיר קושר בהצלחה!",
+      blurbTV: "מקשרים את הטלוויזיה לחשבון שמחובר בטלפון. בוחרים כאן 'קישור הטלוויזיה הזו לחשבון' ומזינים בטלפון את הקוד שיופיע.",
+      conflictTitle: "במכשיר הזה שמורים פרופילים אחרים",
+      conflictDevice: "במכשיר: ", conflictCloud: "בענן: ", conflictAsk: "מה לעשות?",
+      conflictMerge: "מיזוג - להציג את כולם", conflictCloudOnly: "להשאיר את פרופילי הענן",
+      conflictReplace: "להחליף את הענן בפרופילים מהמכשיר",
+      conflictCancel: "ביטול והמשך ללא סנכרון", cancelOk: "ממשיכים ללא סנכרון - הפרופילים במכשיר נשמרו",
+      confirmReplace: "הפרופילים בענן יוחלפו בפרופילים מהמכשיר. לאשר?",
+      confirmYes: "אישור", confirmNo: "ביטול",
+      mergedOk: "הפרופילים מוזגו!", replacedOk: "הפרופילים מהמכשיר הועתקו לענן",
     },
     en: {
       menu: "Account & sync", title: "Account & sync",
@@ -33,14 +42,28 @@ export function initSyncUI(sync) {
       close: "Close", err: "Something went wrong, try again", codeBad: "Code not found or expired",
       waitingConfirm: "Code approved, waiting for final confirmation on the phone…",
       paired: "Device linked!",
+      blurbTV: "Pair this TV with the account that's signed in on your phone. Choose 'Pair this TV to the account' here, then enter the code on your phone.",
+      conflictTitle: "This device has different saved profiles",
+      conflictDevice: "On device: ", conflictCloud: "In cloud: ", conflictAsk: "What would you like to do?",
+      conflictMerge: "Merge - show all of them", conflictCloudOnly: "Keep the cloud profiles",
+      conflictReplace: "Replace cloud with this device's profiles",
+      conflictCancel: "Cancel and continue without sync", cancelOk: "Continuing without sync - device profiles kept",
+      confirmReplace: "The cloud profiles will be replaced with this device's profiles. Confirm?",
+      confirmYes: "Confirm", confirmNo: "Cancel",
+      mergedOk: "Profiles merged!", replacedOk: "Device profiles copied to the cloud",
     },
   };
   const S = () => STR[document.documentElement.lang === "en" ? "en" : "he"] || STR.he;
+  // The Android TV app serves the bundle from a fixed WebView origin. Google
+  // and email sign-in cannot complete inside that WebView, so there the panel
+  // leads with TV pairing instead of offering controls that would only error.
+  const isTV = location.hostname === "appassets.androidplatform.net";
 
   const css = document.createElement("style");
   css.textContent = `
 #syncPanel{position:fixed;inset:0;z-index:60;background:#000a;display:flex;align-items:center;justify-content:center;padding:20px}
-#syncPanel .card{background:#1f1f23;border:1px solid #34343a;border-radius:16px;padding:20px;max-width:420px;width:100%;max-height:85vh;overflow:auto;color:#e8e8ea}
+#syncPanel .card{background:#1f1f23;border:1px solid #34343a;border-radius:16px;padding:20px;max-width:420px;width:100%;max-height:85vh;overflow:auto;color:#e8e8ea;display:flex;flex-direction:column}
+#syncPanel .card>*{flex-shrink:0}
 #syncPanel h2{font-size:20px;margin:0 0 6px}
 #syncPanel h3{font-size:15px;margin:16px 0 8px;color:#b9b9c0}
 #syncPanel p{font-size:14px;color:#b9b9c0;margin:4px 0 12px}
@@ -53,7 +76,7 @@ export function initSyncUI(sync) {
 #syncPanel .dev{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 0;border-top:1px solid #2c2c32;font-size:14px}
 #syncPanel .dev .id{direction:ltr;color:#9a9aa2;font-size:12px}
 #syncPanel .msg{font-size:14px;min-height:18px;color:#7fd8ea}
-#syncPanel .x{width:100%;margin-top:14px}`;
+#syncPanel .x{width:100%;margin-top:14px;position:sticky;bottom:-20px;background:#1f1f23;padding-top:12px;padding-bottom:12px}`;
   document.head.appendChild(css);
 
   const panel = document.createElement("div");
@@ -70,6 +93,8 @@ export function initSyncUI(sync) {
 
   let unwatch = null;
   let pairing = null; // {code, done}
+  let conflictDismissed = false; // session-only; backup itself is kept
+  function msg2(m) { const n = document.getElementById("syncMsg"); if (n) n.textContent = m; }
 
   function el(tag, cls, text) {
     const e = document.createElement(tag);
@@ -85,28 +110,98 @@ export function initSyncUI(sync) {
     const card = el("div", "card");
     panel.appendChild(card);
     card.appendChild(el("h2", null, s.title));
+    // While a first-sync conflict is unresolved the chooser is BLOCKING: no
+    // Close, no backdrop dismiss (tv-mode also refuses Back) - the owner must
+    // pick merge / keep cloud / replace before cloud data can appear.
+    const blocking = !conflictDismissed && !window.KPconflictResolved && sync.signedIn && sync.hasLocalBackup && sync.hasLocalBackup();
+    panel.classList.toggle("blocking", !!blocking);
 
     if (!sync.signedIn) {
-      card.appendChild(el("p", null, s.blurb));
-      const g = el("button", "pri", s.google);
-      g.onclick = async () => { msg.textContent = ""; try { await sync.signInWithGoogle(); render(); } catch (e) { msg.textContent = s.err; } };
-      card.appendChild(g);
-      const row = el("div", "row");
-      const inp = el("input"); inp.type = "email"; inp.placeholder = s.emailPh; inp.dir = "ltr";
-      const send = el("button", null, s.sendLink);
-      send.onclick = async () => {
-        msg.textContent = "";
-        try { await sync.sendEmailLink(inp.value.trim()); msg.textContent = s.linkSent; }
-        catch (e) { msg.textContent = s.err; }
-      };
-      row.append(inp, send);
-      card.appendChild(row);
+      card.appendChild(el("p", null, isTV ? s.blurbTV : s.blurb));
+      if (!isTV) {
+        const g = el("button", "pri", s.google);
+        g.onclick = async () => { msg.textContent = ""; try { await sync.signInWithGoogle(); render(); } catch (e) { msg.textContent = s.err; } };
+        card.appendChild(g);
+        const row = el("div", "row");
+        const inp = el("input"); inp.type = "email"; inp.placeholder = s.emailPh; inp.dir = "ltr";
+        const send = el("button", null, s.sendLink);
+        send.onclick = async () => {
+          msg.textContent = "";
+          try { await sync.sendEmailLink(inp.value.trim()); msg.textContent = s.linkSent; }
+          catch (e) { msg.textContent = s.err; }
+        };
+        row.append(inp, send);
+        card.appendChild(row);
+      }
       // Pairing without an account (TV first step) also lives here:
-      const pr = el("button", null, s.pairThis);
+      const pr = el("button", isTV ? "pri" : null, s.pairThis);
       pr.onclick = startPairing;
       card.appendChild(pr);
     } else {
       card.appendChild(el("p", null, s.signedInAs + ": " + (sync.accountId || "").slice(0, 10) + "…"));
+      // Local profiles differ from the cloud: explicit choice, nothing is
+      // silently overwritten or lost. Backup stays until the owner picks
+      // merge or replace; "keep cloud" only hides this card for the session
+      // (the backup is re-made on the next sign-in while data still differs).
+      if (!conflictDismissed && sync.hasLocalBackup && sync.hasLocalBackup()) {
+        const info = sync.getLocalBackupInfo ? sync.getLocalBackupInfo() : null;
+        const cloudNames = sync.cloudProfileNames ? sync.cloudProfileNames() : null;
+        const box = el("div"); box.style.cssText = "border:1px solid #34343a;border-radius:12px;padding:12px;margin:10px 0";
+        box.appendChild(el("h3", null, s.conflictTitle));
+        box.appendChild(el("p", null, s.conflictDevice + (info && info.names.length ? info.names.join(", ") : "?")));
+        box.appendChild(el("p", null, s.conflictCloud + (cloudNames && cloudNames.length ? cloudNames.join(", ") : "?")));
+        box.appendChild(el("p", null, s.conflictAsk));
+        const mrg = el("button", "pri", s.conflictMerge);
+        mrg.style.width = "100%"; mrg.style.marginBottom = "8px";
+        mrg.onclick = async () => {
+          msg.textContent = "";
+          try { await sync.mergeLocalInstead(); conflictDismissed = true; window.KPconflictResolved = true; window.KPheldState = null; render(); msg2(s.mergedOk); }
+          catch (e) { msg.textContent = s.err; }
+        };
+        box.appendChild(mrg);
+        const keep = el("button", null, s.conflictCloudOnly);
+        keep.style.width = "100%"; keep.style.marginBottom = "8px";
+        keep.onclick = () => {
+          conflictDismissed = true; window.KPconflictResolved = true;
+          const held = window.KPheldState; window.KPheldState = null;
+          if (held && window.KPonRemote) window.KPonRemote(held); // owner chose: cloud may appear now
+          panel.hidden = true;
+        };
+        box.appendChild(keep);
+        const rep = el("button", null, s.conflictReplace);
+        rep.style.width = "100%";
+        rep.onclick = () => {
+          // Destructive to the cloud copy: requires an explicit second tap.
+          box.innerHTML = "";
+          box.appendChild(el("p", null, s.confirmReplace));
+          const yes = el("button", "pri", s.confirmYes);
+          yes.style.width = "100%"; yes.style.marginBottom = "8px";
+          yes.onclick = async () => {
+            msg.textContent = "";
+            try { await sync.useLocalInstead(); conflictDismissed = true; window.KPconflictResolved = true; window.KPheldState = null; render(); msg2(s.replacedOk); }
+            catch (e) { msg.textContent = s.err; }
+          };
+          const no = el("button", null, s.confirmNo);
+          no.style.width = "100%";
+          no.onclick = () => render();
+          box.append(yes, no);
+        };
+        box.appendChild(rep);
+        // Safe escape: disconnect and keep using the device local-only. No
+        // cloud write, no local change - the local view was never replaced,
+        // and sign-out restores base localStorage. The conflict re-prompts on
+        // the next sign-in while the data still differs.
+        const cxl = el("button", null, s.conflictCancel);
+        cxl.style.width = "100%"; cxl.style.marginTop = "8px";
+        cxl.onclick = async () => {
+          msg.textContent = "";
+          try { await sync.signOut(); } catch (e) {}
+          panel.hidden = true;
+          msg2(s.cancelOk);
+        };
+        box.appendChild(cxl);
+        card.appendChild(box);
+      }
       if (pairing && pairing.code) {
         card.appendChild(el("h3", null, s.codeTitle));
         card.appendChild(el("div", "code", pairing.code));
@@ -143,9 +238,11 @@ export function initSyncUI(sync) {
     }
     const msg = el("div", "msg"); msg.id = "syncMsg";
     card.appendChild(msg);
-    const x = el("button", "x", s.close);
-    x.onclick = () => { panel.hidden = true; };
-    card.appendChild(x);
+    if (!blocking) {
+      const x = el("button", "x", s.close);
+      x.onclick = () => { panel.hidden = true; };
+      card.appendChild(x);
+    }
 
     function startPairing() {
       msg.textContent = s.pairingWait;
@@ -205,7 +302,13 @@ export function initSyncUI(sync) {
     render();
     panel.hidden = false;
   };
-  panel.onclick = (e) => { if (e.target === panel) panel.hidden = true; };
+  panel.onclick = (e) => { if (e.target === panel && !panel.classList.contains("blocking")) panel.hidden = true; };
+
+  // The app's hold-and-ask hook: called when cloud data wants to replace the
+  // visible picker while this device has different local profiles.
+  window.KPshowConflict = () => { conflictDismissed = false; render(); panel.hidden = false; };
+  // If the conflict fired before this module finished loading, surface it now.
+  setTimeout(() => { if (window.KPheldState && !window.KPconflictResolved) window.KPshowConflict(); }, 0);
 
   // Complete email-link sign-in when the app was opened from the link.
   if (sync.completeEmailLinkIfPresent) sync.completeEmailLinkIfPresent().then((ok) => { if (ok) render(); }).catch(() => {});
