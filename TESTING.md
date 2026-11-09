@@ -173,3 +173,25 @@ The Android WebView origin is https://localhost, so the APK talks to the real
 project - verified by inspecting the built assets. Emulator suite
 (test-sync.mjs, 45/45) and browser E2E (sync/TV D-pad/entry/avatars) were all
 re-run green on the final integrated build (2026-11-07 03:49 IST).
+
+## PIN and phone keypad regression (2026-11-09)
+Install Playwright for local development, then run:
+
+    npm install --no-save playwright
+    npx playwright install chromium
+    node tests/pin-regression.cjs
+
+This starts a temporary local server and browser with synthetic profiles.
+Firebase sync is stubbed, so it does not sign in or touch production data.
+It reproduces the old bugs with `node tests/pin-regression.cjs --baseline`.
+Checks include a snapshot arriving during editing and after Done, later
+snapshots, refresh, remote rename, right/wrong PIN, verified lock removal,
+cancel, account isolation, sign-out, signed-out persistence, and keypad
+left-to-right order in Hebrew and English. Screenshot goes to the OS temp
+folder as `kids-pin-keypad.png`.
+
+PINs are a device/browser-local mock-app lock, not an account security
+boundary. Cloud profiles deliberately do not contain PINs. Signed-in PINs
+are saved separately per account on this device and restored on each cloud
+snapshot; signed-out locks stay in the existing local profile storage.
+Changing a PIN on one device does not change another device's PIN.
